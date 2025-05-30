@@ -15,6 +15,19 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: "YOUR_MEASUREMENT_ID" // Optional, REPLACE THIS if you use Analytics
 };
 
+// Check if the project ID is still the placeholder
+if (firebaseConfig.projectId === "YOUR_PROJECT_ID") {
+  console.error(
+    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+    "CRITICAL Firebase Configuration Error:\n" +
+    "Your Firebase projectId is still set to the placeholder 'YOUR_PROJECT_ID'.\n" +
+    "You MUST update src/lib/firebase.ts with your actual Firebase project configuration.\n" +
+    "Find this in your Firebase project settings > General > Your apps > Web app > SDK setup and configuration.\n" +
+    "The application will not connect to Firestore correctly until this is fixed.\n" +
+    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  );
+}
+
 // Initialize Firebase
 let app;
 if (!getApps().length) {
