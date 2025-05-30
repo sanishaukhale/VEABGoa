@@ -25,6 +25,7 @@ const contactFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+  honeypot: z.string().optional(), // Hidden field for spam prevention
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -38,10 +39,24 @@ export default function ContactPage() {
       email: "",
       subject: "",
       message: "",
+      honeypot: "",
     },
   });
 
   function onSubmit(data: ContactFormValues) {
+    if (data.honeypot) {
+      // Honeypot field is filled, likely spam.
+      // We still show the success toast to not alert the bot.
+      console.log("Spam attempt detected. Form data:", data);
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We will get back to you shortly.",
+        variant: "default",
+      });
+      form.reset();
+      return;
+    }
+
     // In a real app, you would send this data to a backend or email service.
     console.log("Contact Form Data:", data);
     toast({
@@ -121,6 +136,19 @@ export default function ContactPage() {
                           <Textarea placeholder="Your message here..." {...field} rows={5} />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Honeypot field: hidden from users, to catch bots */}
+                  <FormField
+                    control={form.control}
+                    name="honeypot"
+                    render={({ field }) => (
+                      <FormItem style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
+                        <FormLabel>Please leave this field blank</FormLabel>
+                        <FormControl>
+                          <Input tabIndex={-1} autoComplete="off" {...field} />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
