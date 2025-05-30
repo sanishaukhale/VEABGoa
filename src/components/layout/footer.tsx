@@ -1,6 +1,7 @@
 
-import { Leaf, Facebook, Twitter, Instagram } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { Facebook, Twitter, Instagram } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -9,8 +10,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3 text-primary">
-              <Leaf size={28} />
-              <h3 className="text-xl font-semibold">VEAB Goa</h3>
+              <Image src="/temp-logo.png" alt="VEAB Logo" width={28} height={28} />
+              <h3 className="text-xl font-semibold">Goa</h3>
             </Link>
             <p className="text-sm">
               A non-profit organization based in Keri- Sattari- Goa, dedicated towards environment education & wildlife conservation.
