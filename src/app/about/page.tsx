@@ -5,9 +5,15 @@ import { Leaf, Users, Target, BookOpen, CheckCircle } from "lucide-react";
 
 export default function AboutPage() {
   const teamMembers = [
-    { name: "Dr. Anya Sharma", role: "Founder & Lead Ecologist", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "scientist portrait" },
-    { name: "Rohan Almeida", role: "Community Outreach Coordinator", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person smiling" },
-    { name: "Priya Naik", role: "Research & Advocacy Head", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional woman" },
+    { name: "Chandrakant Shinde", role: "President", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional portrait" },
+    { name: "Sangam Patil", role: "Vice President", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person smiling" },
+    { name: "Deepak Gawas", role: "Secretary", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional headshot" },
+    { name: "Ramesh Zarmekar", role: "Treasurer", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person portrait" },
+    { name: "Sanket Naik", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "team member" },
+    { name: "Subodh Naik", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional photo" },
+    { name: "Vitthal Shelke", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person smiling" },
+    { name: "Suryakant Gaonkar", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional headshot" },
+    { name: "Gajanan Shetye", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "team member" },
   ];
 
   const missionPoints = [
@@ -88,7 +94,7 @@ export default function AboutPage() {
         <div className="text-center mb-10">
           <Users size={48} className="mx-auto text-primary mb-3" />
           <h2 className="text-3xl md:text-4xl font-semibold text-primary">Meet Our Team</h2>
-          <p className="text-lg text-muted-foreground mt-1">The driving force behind our conservation efforts.</p>
+          <p className="text-lg text-muted-foreground mt-1">The driving force behind our conservation efforts. <br />Executive Committee:</p>
         </div>
         <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8">
           {teamMembers.map((member) => (
