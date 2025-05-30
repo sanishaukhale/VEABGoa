@@ -94,7 +94,7 @@ export default function AboutPage() {
         <div className="text-center mb-10">
           <Users size={48} className="mx-auto text-primary mb-3" />
           <h2 className="text-3xl md:text-4xl font-semibold text-primary">Meet Our Team</h2>
-          <p className="text-lg text-muted-foreground mt-1">The driving force behind our conservation efforts. <br />Executive Committee:</p>
+          <p className="text-lg text-muted-foreground mt-1">The driving force behind our conservation efforts.</p>
         </div>
         <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8">
           {teamMembers.map((member) => (
@@ -105,7 +105,7 @@ export default function AboutPage() {
                   alt={member.name}
                   width={120}
                   height={120}
-                  className="rounded-full mx-auto mb-4 border-4 border-primary/20"
+                  className="rounded-full mx-auto mb-4 border-4 border-primary/40"
                   data-ai-hint={member.dataAiHint}
                 />
                 <h3 className="text-xl font-semibold text-foreground">{member.name}</h3>
