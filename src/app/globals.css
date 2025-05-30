@@ -8,33 +8,33 @@ body {
 
 @layer base {
   :root {
-    --background: 36 17% 94%; /* Off-white #F2F0EC */
-    --foreground: 220 10% 25%; /* Dark Cool Gray for text */
+    --background: 210 20% 98%; /* Very Light Cool Gray/Blue */
+    --foreground: 210 30% 25%; /* Dark Desaturated Blue for text */
 
-    --card: 36 17% 96%; /* Slightly brighter Off-white for cards */
-    --card-foreground: 220 10% 25%;
+    --card: 210 20% 99%; /* Slightly brighter for cards */
+    --card-foreground: 210 30% 25%;
 
-    --popover: 36 17% 96%; /* Slightly brighter Off-white for popovers */
-    --popover-foreground: 220 10% 25%;
+    --popover: 210 20% 99%; /* Popover background */
+    --popover-foreground: 210 30% 25%;
 
-    --primary: 151 33% 35%;       /* Forest Green #3B7A57 */
-    --primary-foreground: 36 17% 98%; /* Very light, almost white, for text on primary */
+    --primary: 180 35% 45%;       /* Teal */
+    --primary-foreground: 180 20% 95%; /* Very light, for text on primary */
 
-    --secondary: 151 30% 88%;     /* Lighter, less saturated Forest Green */
-    --secondary-foreground: 151 33% 25%; /* Darker green for text on secondary */
+    --secondary: 180 25% 90%;     /* Light Teal/Gray */
+    --secondary-foreground: 180 35% 30%; /* Darker teal for text on secondary */
 
-    --muted: 36 17% 90%;          /* Slightly darker off-white for muted backgrounds */
-    --muted-foreground: 220 10% 45%; /* Muted text color */
+    --muted: 210 20% 94%;          /* Light Gray for muted backgrounds */
+    --muted-foreground: 210 20% 55%; /* Muted text color (Medium Gray) */
 
-    --accent: 26 29% 50%;         /* Earthy Brown #A67B5B */
-    --accent-foreground: 36 17% 98%; /* Very light for text on accent */
+    --accent: 45 50% 60%;         /* Muted Gold/Sand */
+    --accent-foreground: 45 30% 20%; /* Dark Brown for text on accent */
 
-    --destructive: 0 72% 51%;     /* A standard red for destructive actions */
+    --destructive: 0 70% 55%;     /* A standard red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 36 10% 80%;         /* Softer border color, derived from background hue */
-    --input: 36 10% 85%;          /* Input border, slightly lighter */
-    --ring: 151 33% 45%;          /* Ring color related to primary */
+    --border: 210 20% 88%;         /* Softer border color */
+    --input: 210 20% 92%;          /* Input border, slightly lighter */
+    --ring: 180 35% 55%;          /* Ring color related to primary */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -43,45 +43,45 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar specific variables - can be adjusted if sidebar is used differently or removed if not central */
-    --sidebar-background: 36 17% 92%; /* Slightly darker off-white for sidebar */
-    --sidebar-foreground: 220 10% 30%;
-    --sidebar-primary: 151 33% 35%;
-    --sidebar-primary-foreground: 36 17% 98%;
-    --sidebar-accent: 26 29% 50%;
-    --sidebar-accent-foreground: 36 17% 98%;
-    --sidebar-border: 36 10% 75%;
-    --sidebar-ring: 151 33% 45%;
+    /* Sidebar specific variables */
+    --sidebar-background: 210 20% 96%; 
+    --sidebar-foreground: 210 30% 30%;
+    --sidebar-primary: 180 35% 45%;
+    --sidebar-primary-foreground: 180 20% 95%;
+    --sidebar-accent: 45 50% 60%;
+    --sidebar-accent-foreground: 45 30% 20%;
+    --sidebar-border: 210 20% 85%;
+    --sidebar-ring: 180 35% 55%;
   }
 
   .dark {
-    --background: 220 15% 10%; /* Dark blue-gray */
-    --foreground: 36 15% 85%;  /* Light off-white */
+    --background: 210 25% 12%; /* Dark Desaturated Blue */
+    --foreground: 210 15% 88%;  /* Light Cool Gray */
 
-    --card: 220 15% 12%;
-    --card-foreground: 36 15% 85%;
+    --card: 210 25% 15%;
+    --card-foreground: 210 15% 88%;
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 36 15% 85%;
+    --popover: 210 25% 15%;
+    --popover-foreground: 210 15% 88%;
 
-    --primary: 151 33% 55%; /* Brighter Forest Green for dark mode */
-    --primary-foreground: 151 20% 10%; /* Dark green for text on primary */
+    --primary: 180 40% 60%; /* Brighter Teal for dark mode */
+    --primary-foreground: 180 25% 10%; /* Very Dark Teal for text on primary */
 
-    --secondary: 151 30% 20%; /* Darker, less saturated green */
-    --secondary-foreground: 151 30% 75%;
+    --secondary: 180 30% 25%; /* Darker, muted Teal */
+    --secondary-foreground: 180 20% 75%; /* Lighter Teal for on-secondary text */
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 36 15% 65%;
+    --muted: 210 25% 20%; /* Darker Gray */
+    --muted-foreground: 210 15% 65%; /* Medium Light Gray */
 
-    --accent: 26 29% 60%; /* Brighter Earthy Brown */
-    --accent-foreground: 26 20% 10%;
+    --accent: 45 55% 70%; /* Brighter Muted Gold/Sand */
+    --accent-foreground: 45 30% 15%; /* Very Dark Brown for on-accent text */
 
-    --destructive: 0 60% 50%;
+    --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 25%;
-    --input: 220 15% 30%;
-    --ring: 151 33% 65%;
+    --border: 210 20% 30%;
+    --input: 210 20% 35%;
+    --ring: 180 40% 70%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -90,14 +90,14 @@ body {
     --chart-5: 340 75% 55%;
 
     /* Sidebar dark theme variables */
-    --sidebar-background: 220 15% 8%;
-    --sidebar-foreground: 36 15% 80%;
-    --sidebar-primary: 151 33% 55%;
-    --sidebar-primary-foreground: 151 20% 10%;
-    --sidebar-accent: 26 29% 60%;
-    --sidebar-accent-foreground: 26 20% 10%;
-    --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 151 33% 65%;
+    --sidebar-background: 210 25% 10%;
+    --sidebar-foreground: 210 15% 80%;
+    --sidebar-primary: 180 40% 60%;
+    --sidebar-primary-foreground: 180 25% 10%;
+    --sidebar-accent: 45 55% 70%;
+    --sidebar-accent-foreground: 45 30% 15%;
+    --sidebar-border: 210 20% 25%;
+    --sidebar-ring: 180 40% 70%;
   }
 }
 
