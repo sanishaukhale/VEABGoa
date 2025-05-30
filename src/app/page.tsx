@@ -59,9 +59,7 @@ export default function HomePage() {
             VEAB Goa is committed to preserving the natural beauty and ecological balance of Goa through community action and sustainable practices.
           </p>
           <div className="space-x-4">
-            <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/donate">Donate Now <ArrowRight className="ml-2 h-5 w-5" /></Link>
-            </Button>
+            {/* Removed Donate Now button */}
             <Button size="lg" variant="outline" asChild className="border-primary text-primary hover:bg-primary/10">
               <Link href="/about">Learn More</Link>
             </Button>

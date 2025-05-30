@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Menu, X, Leaf, Home, Info, Sprout, CalendarDays, Newspaper, HeartHandshake, Mail } from "lucide-react";
+import { Menu, X, Leaf, Home, Info, Sprout, CalendarDays, Newspaper, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { usePathname } from 'next/navigation';
@@ -15,7 +15,6 @@ const navLinks = [
   { href: "/projects", label: "Projects", icon: Sprout },
   { href: "/events", label: "Events", icon: CalendarDays },
   { href: "/news", label: "News & Blog", icon: Newspaper },
-  { href: "/donate", label: "Donate", icon: HeartHandshake },
   { href: "/contact", label: "Contact", icon: Mail },
 ];
 
@@ -89,11 +88,7 @@ export default function Header() {
                     </SheetClose>
                   ))}
                 </nav>
-                <div className="p-4 border-t">
-                  <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Link href="/donate">Donate Now</Link>
-                  </Button>
-                </div>
+                {/* Removed Donate button from mobile menu footer */}
               </div>
             </SheetContent>
           </Sheet>
