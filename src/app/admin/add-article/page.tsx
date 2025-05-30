@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { saveArticle, type AddArticleFormValues } from "./actions";
+import { useState, useEffect } from "react";
+// Only import the type statically, the function will be imported dynamically
+import type { AddArticleFormValues } from "./actions";
 import { Loader2, PlusCircle } from "lucide-react";
 
 // Schema for client-side validation, should match server action
@@ -40,6 +41,14 @@ const addArticleFormSchema = z.object({
 export default function AddArticlePage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isStaticExport, setIsStaticExport] = useState(false);
+
+  useEffect(() => {
+    // Check if running in a static export environment (e.g., GitHub Pages build)
+    if (process.env.NEXT_PUBLIC_BASE_PATH) {
+      setIsStaticExport(true);
+    }
+  }, []);
 
   const form = useForm<AddArticleFormValues>({
     resolver: zodResolver(addArticleFormSchema),
@@ -57,7 +66,24 @@ export default function AddArticlePage() {
 
   async function onSubmit(data: AddArticleFormValues) {
     setIsLoading(true);
+
+    if (isStaticExport) {
+      console.log("Static export mode: Admin form submission simulated. Data not sent to server.", data);
+      setTimeout(() => { // Simulate network delay
+        toast({
+          title: "Action Simulated (Static Export)",
+          description: "In a live environment, the article would be saved. This page is not functional in static export mode.",
+          variant: "default",
+        });
+        form.reset();
+        setIsLoading(false);
+      }, 1000);
+      return;
+    }
+
     try {
+      // Dynamically import the server action
+      const { saveArticle } = await import("./actions");
       const result = await saveArticle(data);
       if (result.success) {
         toast({
@@ -93,7 +119,14 @@ export default function AddArticlePage() {
             <PlusCircle size={32} className="text-primary mr-3" />
             <CardTitle className="text-3xl text-primary">Add New Article</CardTitle>
           </div>
-          <CardDescription>Fill in the details below to publish a new news article or blog post.</CardDescription>
+          <CardDescription>
+            Fill in the details below to publish a new news article or blog post.
+            {isStaticExport && (
+              <span className="block text-destructive text-sm mt-1">
+                Note: This admin form is not functional in static export mode.
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -225,7 +258,7 @@ export default function AddArticlePage() {
                 )}
               />
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6" disabled={isLoading || isStaticExport}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
