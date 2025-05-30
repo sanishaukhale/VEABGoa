@@ -6,8 +6,8 @@ const nextConfig: NextConfig = {
   // If your site is at https://<username>.github.io/your-repo-name/
   // If your site is at https://<username>.github.io/ (i.e., a user/org page using the <username>.github.io repo),
   // then you can remove basePath and assetPrefix or set them to an empty string.
-  basePath: process.env.NODE_ENV === 'production' ? '/your-repo-name' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : '',
+  basePath: process.env.NODE_ENV === 'production' ? '/VEABGoa' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/VEABGoa/' : '',
   typescript: {
     ignoreBuildErrors: true,
   },
