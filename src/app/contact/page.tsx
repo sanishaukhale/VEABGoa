@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Phone, MapPinIcon, Send } from "lucide-react";
+import { Mail, Phone, MapPinIcon, Send, Clock } from "lucide-react"; // Added Clock icon
 import { useToast } from "@/hooks/use-toast";
 
 const contactFormSchema = z.object({
@@ -164,12 +164,14 @@ export default function ContactPage() {
           
           <Card className="shadow-lg">
              <CardHeader>
-                <CardTitle className="text-xl text-accent">Office Hours</CardTitle>
+                <div className="flex items-center">
+                  <Clock size={20} className="text-accent mr-2" />
+                  <CardTitle className="text-xl text-accent">Our Availability</CardTitle>
+                </div>
              </CardHeader>
              <CardContent className="text-foreground">
-                <p className="text-sm">Monday - Friday: 9:00 AM - 5:00 PM</p>
-                <p className="text-sm">Saturday - Sunday: Closed</p>
-                <p className="text-xs mt-2 text-muted-foreground">(Please call ahead for appointments)</p>
+                <p className="text-sm">We are open all the time for environment enthusiasts!</p>
+                <p className="text-sm mt-1">Feel free to reach out or visit us to discuss how you can contribute.</p>
              </CardContent>
           </Card>
         </div>
