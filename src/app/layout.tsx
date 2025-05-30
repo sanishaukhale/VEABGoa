@@ -1,18 +1,12 @@
 
 import type {Metadata} from 'next';
-import { Geist, Geist_Mono } from 'next/font/google'; // Corrected font import name
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import MainLayout from '@/components/layout/main-layout';
 
-const geistSans = Geist({ // Corrected variable name
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({ // Corrected variable name
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+// By importing GeistSans and GeistMono, their CSS variables (e.g., --font-geist-sans)
+// are made available when we apply GeistSans.variable and GeistMono.variable in the className.
 
 export const metadata: Metadata = {
   title: 'VEAB Goa - Environmental Conservation',
@@ -26,7 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      {/*
+        Applying GeistSans.variable and GeistMono.variable here makes the CSS variables
+        --font-geist-sans and --font-geist-mono available globally.
+        The globals.css file already uses var(--font-geist-sans).
+      */}
+      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <MainLayout>{children}</MainLayout>
       </body>
     </html>
