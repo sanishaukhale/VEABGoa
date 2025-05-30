@@ -22,7 +22,6 @@ export default function Footer() {
               <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="/projects" className="hover:text-primary transition-colors">Projects</Link></li>
               <li><Link href="/events" className="hover:text-primary transition-colors">Events</Link></li>
-              {/* Removed Donate link */}
             </ul>
           </div>
           <div>
@@ -45,7 +44,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-border pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} VEAB Goa. All rights reserved.</p>
+          <p>Made totally using AI and maintained by Sanish and Abhishek. © {new Date().getFullYear()} VEAB Goa.</p>
         </div>
       </div>
     </footer>
