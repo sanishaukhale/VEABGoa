@@ -1,19 +1,109 @@
 
+"use client";
+
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Leaf, Users, Target, BookOpen, CheckCircle } from "lucide-react";
+import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon } from "lucide-react";
+import { useState } from "react";
+
+interface SocialLink {
+  platform: string;
+  url: string;
+  icon: React.ElementType;
+}
+
+interface TeamMember {
+  name: string;
+  role: string;
+  imageUrl: string;
+  dataAiHint: string;
+  intro: string;
+  profession: string;
+  socials?: SocialLink[];
+}
 
 export default function AboutPage() {
-  const teamMembers = [
-    { name: "Chandrakant Shinde", role: "President", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional portrait" },
-    { name: "Sangam Patil", role: "Vice President", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person smiling" },
-    { name: "Deepak Gawas", role: "Secretary", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional headshot" },
-    { name: "Ramesh Zarmekar", role: "Treasurer", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person portrait" },
-    { name: "Sanket Naik", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "team member" },
-    { name: "Subodh Naik", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional photo" },
-    { name: "Vitthal Shelke", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "person smiling" },
-    { name: "Suryakant Gaonkar", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional headshot" },
-    { name: "Gajanan Shetye", role: "EC Member", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "team member" },
+  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
+
+  const teamMembers: TeamMember[] = [
+    {
+      name: "Chandrakant Shinde",
+      role: "President",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "professional portrait",
+      intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
+      profession: "Environmental Leader",
+      socials: [
+        { platform: "LinkedIn", url: "#", icon: Linkedin },
+        { platform: "Mail", url: "mailto:president@example.com", icon: MailIcon },
+      ],
+    },
+    {
+      name: "Sangam Patil",
+      role: "Vice President",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "person smiling",
+      intro: "Supporting strategic initiatives and fostering partnerships for sustainable development in the region.",
+      profession: "Conservation Strategist",
+      socials: [{ platform: "Twitter", url: "#", icon: Twitter }],
+    },
+    {
+      name: "Deepak Gawas",
+      role: "Secretary",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "professional headshot",
+      intro: "Overseeing administrative operations and ensuring smooth execution of VEAB's projects and programs.",
+      profession: "Operations Manager",
+      socials: [{ platform: "Mail", url: "mailto:secretary@example.com", icon: MailIcon }],
+    },
+    {
+      name: "Ramesh Zarmekar",
+      role: "Treasurer",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "person portrait",
+      intro: "Managing financial resources with transparency to support VEAB's mission and long-term sustainability.",
+      profession: "Financial Advisor",
+    },
+    {
+      name: "Sanket Naik",
+      role: "EC Member",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "team member",
+      intro: "Contributing to ecological research and on-ground conservation activities with expertise.",
+      profession: "Field Biologist",
+    },
+    {
+      name: "Subodh Naik",
+      role: "EC Member",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "professional photo",
+      intro: "Actively involved in community outreach and environmental awareness campaigns across Goa.",
+      profession: "Community Organizer",
+    },
+    {
+      name: "Vitthal Shelke",
+      role: "EC Member",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "person smiling",
+      intro: "Focused on wildlife rescue operations and habitat restoration projects within the state.",
+      profession: "Wildlife Rehabilitator",
+    },
+    {
+      name: "Suryakant Gaonkar",
+      role: "EC Member",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "professional headshot",
+      intro: "Dedicated to promoting sustainable agricultural practices and local biodiversity.",
+      profession: "Agroecologist",
+    },
+    {
+      name: "Gajanan Shetye",
+      role: "EC Member",
+      imageUrl: "https://placehold.co/300x300.png",
+      dataAiHint: "team member",
+      intro: "Advocating for policy changes and legal frameworks for better environmental protection.",
+      profession: "Environmental Advocate",
+    },
   ];
 
   const missionPoints = [
@@ -25,6 +115,10 @@ export default function AboutPage() {
     "To implement conservation projects, coordinate related activities and spread awareness regarding the same.",
     "To carry out research & documentation on wildlife and other facets of biodiversity."
   ];
+
+  const handleFlip = (name: string) => {
+    setFlippedCards(prev => ({ ...prev, [name]: !prev[name] }));
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
@@ -78,7 +172,7 @@ export default function AboutPage() {
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center mb-2">
-                <Leaf size={32} className="text-accent mr-3" /> {/* Using Leaf as a stand-in for vision icon */}
+                <Leaf size={32} className="text-accent mr-3" />
                 <CardTitle className="text-3xl text-accent">Our Vision</CardTitle>
             </div>
           </CardHeader>
@@ -94,24 +188,66 @@ export default function AboutPage() {
         <div className="text-center mb-10">
           <Users size={48} className="mx-auto text-primary mb-3" />
           <h2 className="text-3xl md:text-4xl font-semibold text-primary">Meet Our Team</h2>
-          <p className="text-lg text-muted-foreground mt-1">The driving force behind our conservation efforts.</p>
         </div>
-        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {teamMembers.map((member) => (
-            <Card key={member.name} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="pt-6">
-                <Image
-                  src={member.imageUrl}
-                  alt={member.name}
-                  width={120}
-                  height={120}
-                  className="rounded-full mx-auto mb-4 border-4 border-primary/40"
-                  data-ai-hint={member.dataAiHint}
-                />
-                <h3 className="text-xl font-semibold text-foreground">{member.name}</h3>
-                <p className="text-accent">{member.role}</p>
-              </CardContent>
-            </Card>
+            <div key={member.name} className="flip-card h-96" onClick={() => handleFlip(member.name)}>
+              <div className={`flip-card-inner ${flippedCards[member.name] ? 'is-flipped' : ''}`}>
+                <div className="flip-card-front">
+                  <Card className="w-full h-full flex flex-col text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <CardContent className="pt-6 flex flex-col items-center justify-center flex-grow">
+                      <Image
+                        src={member.imageUrl}
+                        alt={member.name}
+                        width={150}
+                        height={150}
+                        className="rounded-full mx-auto mb-4 border-4 border-primary/40"
+                        data-ai-hint={member.dataAiHint}
+                      />
+                      <h3 className="text-xl font-semibold text-foreground">{member.name}</h3>
+                      <p className="text-accent">{member.role}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div className="flip-card-back">
+                  <Card className="w-full h-full flex flex-col shadow-lg">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xl text-primary">{member.name}</CardTitle>
+                      <p className="text-sm text-accent -mt-1">{member.role}</p>
+                    </CardHeader>
+                    <CardContent className="pt-2 text-left space-y-3 overflow-y-auto flex-grow">
+                      <div>
+                        <h4 className="font-semibold text-accent/90 text-sm">About</h4>
+                        <p className="text-xs sm:text-sm text-foreground">{member.intro}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-accent/90 text-sm">Profession</h4>
+                        <p className="text-xs sm:text-sm text-foreground">{member.profession}</p>
+                      </div>
+                      {member.socials && member.socials.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold text-accent/90 text-sm">Connect</h4>
+                          <div className="flex space-x-3 mt-1">
+                            {member.socials.map(social => (
+                              <a 
+                                key={social.platform} 
+                                href={social.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary hover:text-primary/70"
+                                onClick={(e) => e.stopPropagation()} // Prevents card flip when clicking social icon
+                              >
+                                <social.icon size={20} aria-label={social.platform} />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
         <p className="text-center mt-8 text-lg text-foreground">

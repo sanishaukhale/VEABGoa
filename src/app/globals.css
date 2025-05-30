@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -38,7 +39,7 @@ body {
     --ring: 120 40% 45%;          /* Ring color related to primary */
 
     --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%; /* Kept a contrasting teal for charts if needed */
+    --chart-2: 173 58% 39%; 
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -86,7 +87,7 @@ body {
     --ring: 120 45% 60%;
 
     --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%; /* Kept a contrasting teal for charts */
+    --chart-2: 160 60% 45%; 
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
@@ -110,4 +111,69 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Flip card styles */
+.flip-card {
+  background-color: transparent;
+  /* width: 100%; is handled by grid column */
+  /* height: 384px; /* Set by Tailwind h-96 */
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.7s;
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden; /* Safari */
+  backface-visibility: hidden;
+  display: flex; /* Ensure Card takes full height */
+  flex-direction: column; /* For Card layout */
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Ensure ShadCN Card itself (the div) takes full height within front/back faces */
+.flip-card-front > .rounded-lg, /* Targeting ShadCN Card by its common classes */
+.flip-card-back > .rounded-lg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* Allow CardHeader, CardContent, CardFooter to stack */
+}
+
+/* Ensure CardContent can grow and scroll if needed */
+.flip-card-front > .rounded-lg > div:nth-child(2), /* Targeting CardContent, usually 2nd child after CardHeader */
+.flip-card-back > .rounded-lg > div:nth-child(2) { /* Targeting CardContent */
+  flex-grow: 1;
+  overflow-y: auto;
+}
+/* If CardHeader is not present, CardContent might be the first direct div child used for content */
+.flip-card-front > .rounded-lg > div:first-child:not(:only-child), 
+.flip-card-back > .rounded-lg > div:first-child:not(:only-child) {
+  /* This could target CardContent if CardHeader is missing but there are other siblings */
+  /* More robust if CardContent has a specific class or data-attribute */
+}
+
+/* Simpler approach if CardContent is always used and needs to be scrollable and grow */
+.flip-card-back .text-left { /* Assuming CardContent on the back has text-left */
+    flex-grow: 1;
+    overflow-y: auto;
 }
