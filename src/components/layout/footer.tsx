@@ -13,7 +13,7 @@ export default function Footer() {
               <h3 className="text-xl font-semibold">VEAB Goa</h3>
             </Link>
             <p className="text-sm">
-              Dedicated to conserving and protecting the vibrant ecosystems of Goa.
+              A non-profit organization based in Keri- Sattari- Goa, dedicated towards environment education & wildlife conservation.
             </p>
           </div>
           <div>
@@ -39,8 +39,8 @@ export default function Footer() {
               </a>
             </div>
             <p className="text-sm mt-4">
-              info@veabgoa.org <br />
-              +91-123-456-7890 (Placeholder)
+              veab.goa@gmail.com <br />
+              8806413360 / 9130555168
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Leaf, Users, Target, BookOpen } from "lucide-react";
+import { Leaf, Users, Target, BookOpen, CheckCircle } from "lucide-react";
 
 export default function AboutPage() {
   const teamMembers = [
@@ -10,13 +10,23 @@ export default function AboutPage() {
     { name: "Priya Naik", role: "Research & Advocacy Head", imageUrl: "https://placehold.co/300x300.png", dataAiHint: "professional woman" },
   ];
 
+  const missionPoints = [
+    "Protecting & improving the natural environment.",
+    "Spreading awareness and knowledge on the principles, practices regarding wildlife protection, pollution control and conservation of natural resources.",
+    "Facilitating action to maintain the stock of biological wealth.",
+    "To carry out environmental education and reach to a maximum people.",
+    "To rescue, treat & rehabilitate wild animals.",
+    "To implement conservation projects, coordinate related activities and spread awareness regarding the same.",
+    "To carry out research & documentation on wildlife and other facets of biodiversity."
+  ];
+
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <header className="text-center mb-12">
         <Leaf size={64} className="mx-auto text-primary mb-4" />
         <h1 className="text-4xl md:text-5xl font-bold text-primary">About VEAB Goa</h1>
-        <p className="text-xl text-muted-foreground mt-2">
-          Dedicated to the conservation and sustainable management of Goa&apos;s rich biodiversity.
+        <p className="text-xl text-muted-foreground mt-2 max-w-3xl mx-auto">
+          Vivekanand Environment Awareness Brigade (VEAB) is a non-profit organization based in Keri- Sattari- Goa, dedicated towards environment education & wildlife conservation.
         </p>
       </header>
 
@@ -30,7 +40,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-lg text-foreground space-y-4">
             <p>
-              Founded in 2010 by a group of passionate environmentalists and local community leaders, VEAB Goa (Volunteers for Environmental Action and Biodiversity) emerged from a shared concern for the rapidly changing Goan landscape. Witnessing the pressures of unplanned development, resource depletion, and climate change on our pristine ecosystems, we felt an urgent call to action.
+              Founded in 2010 by a group of passionate environmentalists and local community leaders, VEAB Goa emerged from a shared concern for the rapidly changing Goan landscape. Witnessing the pressures of unplanned development, resource depletion, and climate change on our pristine ecosystems, we felt an urgent call to action.
             </p>
             <p>
               Over the past decade, VEAB Goa has grown from a small volunteer group into a recognized organization at the forefront of environmental conservation in the region. Our journey has been marked by successful grassroots campaigns, impactful research projects, and a growing network of dedicated volunteers and partners. We believe in a collaborative approach, working closely with local communities, government bodies, and academic institutions to create lasting positive change.
@@ -49,9 +59,14 @@ export default function AboutPage() {
             </div>
           </CardHeader>
           <CardContent className="text-lg text-foreground">
-            <p>
-              To protect, conserve, and restore the unique ecosystems of Goa through scientific research, community education, active volunteer participation, and advocacy for sustainable environmental policies. We aim to empower local communities to become stewards of their natural heritage.
-            </p>
+            <ul className="space-y-3">
+              {missionPoints.map((point, index) => (
+                <li key={index} className="flex items-start">
+                  <CheckCircle size={20} className="text-primary mr-2 mt-1 flex-shrink-0" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
         <Card className="shadow-lg">

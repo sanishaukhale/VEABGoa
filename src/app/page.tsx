@@ -73,7 +73,7 @@ export default function HomePage() {
           <Leaf size={48} className="mx-auto text-primary mb-4" />
           <h2 className="text-3xl font-semibold text-foreground mb-4">Our Mission</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            To protect, conserve, and restore the unique ecosystems of Goa through research, education, community engagement, and advocacy for sustainable environmental policies.
+            Vivekanand Environment Awareness Brigade (VEAB) is a non-profit organization based in Keri- Sattari- Goa, dedicated towards environment education & wildlife conservation.
           </p>
         </section>
 

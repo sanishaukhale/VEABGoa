@@ -141,22 +141,22 @@ export default function ContactPage() {
               <div className="flex items-start">
                 <MapPinIcon size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold">Our Office</h4>
-                  <p className="text-sm">123 Green Valley Road, Panjim, Goa, India (Placeholder)</p>
+                  <h4 className="font-semibold">Our Location</h4>
+                  <p className="text-sm">Keri, Sattari, Goa, India</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <Mail size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Email Us</h4>
-                  <p className="text-sm">info@veabgoa.org (Placeholder)</p>
+                  <p className="text-sm">veab.goa@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <Phone size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Call Us</h4>
-                  <p className="text-sm">+91-123-456-7890 (Placeholder)</p>
+                  <p className="text-sm">8806413360 / 9130555168</p>
                 </div>
               </div>
             </CardContent>
