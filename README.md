@@ -33,13 +33,14 @@ cd your-repo-name
 
 ### 2. Set Up Environment Variables
 
-The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, contact form submissions).
+The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, contact form submissions) and potentially for other services. It also uses an environment variable for the `basePath` in certain contexts.
 
 *   Copy the example environment file:
     ```bash
     cp src/.env.local.example src/.env.local
     ```
 *   Open `src/.env.local` and replace the placeholder values with your **actual Firebase project credentials**. You can find these in your Firebase project settings.
+    For local development, you typically **do not** need to set `NEXT_PUBLIC_BASE_PATH` unless you are specifically testing production-like `basePath` behavior. `next.config.ts` handles `basePath` for local development automatically (setting it to `''`). If you *do* set it for local testing, make sure it matches your intended production `basePath` (e.g., `/your-repo-name`).
 
     ```ini
     # Firebase Configuration - Replace with your actual project details
@@ -50,6 +51,11 @@ The application requires Firebase credentials to connect to Firestore for dynami
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_MESSAGING_SENDER_ID_FROM_ENV_LOCAL"
     NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID_FROM_ENV_LOCAL"
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_MEASUREMENT_ID_FROM_ENV_LOCAL" # Optional
+
+    # Base Path for assets if needed during local development to simulate production
+    # Typically, leave this commented out or empty for standard local development.
+    # It's primarily used by the GitHub Actions workflow for production builds.
+    # NEXT_PUBLIC_BASE_PATH=""
     ```
 
     **Note:** `src/.env.local` is gitignored and should never be committed to the repository.
@@ -131,8 +137,8 @@ This command generates static HTML/CSS/JS files in the `out` directory, suitable
 
 This project is configured for deployment to GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
 
-*   **Repository Name:** Ensure `basePath` and `assetPrefix` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`).
-*   **GitHub Secrets:** Configure the Firebase environment variables (from `src/.env.local.example`) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process.
+*   **Repository Name:** Ensure `basePath` and `assetPrefix` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa` or `/VEABGoa/` as appropriate.
+*   **GitHub Secrets:** Configure the Firebase environment variables (from `src/.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
 *   **Limitations:**
     *   Server Actions (used for the contact form and admin article submission) **will not work** on GitHub Pages. The site will simulate success for these forms but no data will be saved to Firestore.
     *   News and events will be static content generated at build time.
@@ -147,6 +153,7 @@ For full functionality, including Server Actions, deploy to a platform that supp
 
 A basic admin interface is available at `/admin/add-article` to add new news articles.
 *   **Security:** This interface is currently **not secured**. Anyone with the URL can access it. Implementing proper authentication and authorization is a critical next step for any production use.
+*   **Functionality on GitHub Pages:** The admin interface will be present on the static site, but the "Publish Article" button will be disabled as server actions do not work.
 
 ## Contributing
 

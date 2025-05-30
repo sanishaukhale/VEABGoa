@@ -4,13 +4,14 @@ import Link from "next/link";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 
 export default function Footer() {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   return (
     <footer className="bg-secondary text-secondary-foreground py-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3 text-primary">
-              <Image src="/veab-logo.png" alt="VEAB Logo" width={28} height={28} />
+              <Image src={`${basePath}/veab-logo.png`} alt="VEAB Logo" width={28} height={28} />
               <h3 className="text-xl font-semibold">Goa</h3>
             </Link>
             <p className="text-sm">
