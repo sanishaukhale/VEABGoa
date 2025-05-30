@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3 text-primary">
-              <Image src="/temp-logo.png" alt="VEAB Logo" width={28} height={28} />
+              <Image src="/veab-logo.png" alt="VEAB Logo" width={28} height={28} />
               <h3 className="text-xl font-semibold">Goa</h3>
             </Link>
             <p className="text-sm">

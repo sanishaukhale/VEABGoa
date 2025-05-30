@@ -25,7 +25,7 @@ export default function Header() {
     <header className="bg-card shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors">
-          <Image src="/temp-logo.png" alt="VEAB Logo" width={32} height={32} />
+          <Image src="/veab-logo.png" alt="VEAB Logo" width={32} height={32} />
           <span className="text-2xl font-bold">Goa</span>
         </Link>
 
@@ -59,7 +59,7 @@ export default function Header() {
               <div className="flex flex-col h-full">
                 <div className="p-4 border-b">
                    <Link href="/" className="flex items-center gap-2 text-primary">
-                    <Image src="/temp-logo.png" alt="VEAB Logo" width={28} height={28} />
+                    <Image src="/veab-logo.png" alt="VEAB Logo" width={28} height={28} />
                     <span className="text-xl font-bold">Goa</span>
                   </Link>
                 </div>
