@@ -8,9 +8,16 @@ import MainLayout from '@/components/layout/main-layout';
 // By importing GeistSans and GeistMono, their CSS variables (e.g., --font-geist-sans)
 // are made available when we apply GeistSans.variable and GeistMono.variable in the className.
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export const metadata: Metadata = {
-  title: 'VEAB Goa - Environmental Conservation',
+  title: 'VEAB Goa',
   description: 'Working towards a greener and cleaner Goa. Join VEAB Goa in protecting our natural heritage.',
+  icons: {
+    icon: `${basePath}/veab-logo.png`, // Path relative to the public folder, considering basePath
+    shortcut: `${basePath}/veab-logo.png`,
+    apple: `${basePath}/veab-logo.png`,
+  },
 };
 
 export default function RootLayout({
