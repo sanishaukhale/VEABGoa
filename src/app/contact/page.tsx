@@ -16,8 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Phone, MapPinIcon, Send, Clock } from "lucide-react"; // Added Clock icon
+import { Mail, Phone, MapPinIcon, Send, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -142,21 +143,27 @@ export default function ContactPage() {
                 <MapPinIcon size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Our Location</h4>
-                  <p className="text-sm">Keri, Sattari, Goa, India</p>
+                  <Link href="https://maps.app.goo.gl/SvEm4Htz3kKbpwEz6" target="_blank" rel="noopener noreferrer" className="text-sm hover:underline">
+                    Keri, Sattari, Goa, India
+                  </Link>
                 </div>
               </div>
               <div className="flex items-start">
                 <Mail size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Email Us</h4>
-                  <p className="text-sm">veab.goa@gmail.com</p>
+                  <a href="mailto:veab.goa@gmail.com" className="text-sm hover:underline">
+                    veab.goa@gmail.com
+                  </a>
                 </div>
               </div>
               <div className="flex items-start">
                 <Phone size={24} className="text-primary mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">Call Us</h4>
-                  <p className="text-sm">8806413360 / 9130555168</p>
+                  <p className="text-sm">
+                    <a href="tel:8806413360" className="hover:underline">8806413360</a> / <a href="tel:9130555168" className="hover:underline">9130555168</a>
+                  </p>
                 </div>
               </div>
             </CardContent>
