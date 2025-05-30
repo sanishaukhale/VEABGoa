@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { Menu, Leaf, Home, Info, Sprout, CalendarDays, Newspaper, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -19,16 +18,7 @@ const navLinks = [
 ];
 
 export default function Header() {
-  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return null; 
-  }
 
   return (
     <header className="bg-card shadow-md sticky top-0 z-50">
@@ -88,7 +78,6 @@ export default function Header() {
                     </SheetClose>
                   ))}
                 </nav>
-                {/* Removed Donate button from mobile menu footer */}
               </div>
             </SheetContent>
           </Sheet>
