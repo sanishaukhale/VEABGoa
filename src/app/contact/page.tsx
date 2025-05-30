@@ -16,9 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Mail, Phone, MapPinIcon, Send, Clock } from "lucide-react";
+import { Mail, Phone, MapPinIcon, Send, Clock, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { useState } from "react";
+import { saveContactMessage } from "./actions";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -32,6 +34,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -43,11 +46,9 @@ export default function ContactPage() {
     },
   });
 
-  function onSubmit(data: ContactFormValues) {
+  async function onSubmit(data: ContactFormValues) {
     if (data.honeypot) {
-      // Honeypot field is filled, likely spam.
-      // We still show the success toast to not alert the bot.
-      console.log("Spam attempt detected. Form data:", data);
+      console.log("Spam attempt detected (client-side). Form data:", data);
       toast({
         title: "Message Sent!",
         description: "Thank you for contacting us. We will get back to you shortly.",
@@ -57,14 +58,33 @@ export default function ContactPage() {
       return;
     }
 
-    // In a real app, you would send this data to a backend or email service.
-    console.log("Contact Form Data:", data);
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We will get back to you shortly.",
-      variant: "default",
-    });
-    form.reset();
+    setIsLoading(true);
+    try {
+      const result = await saveContactMessage(data);
+      if (result.success) {
+        toast({
+          title: "Message Sent!",
+          description: result.message || "Thank you for contacting us. We will get back to you shortly.",
+          variant: "default",
+        });
+        form.reset();
+      } else {
+        toast({
+          title: "Error Sending Message",
+          description: result.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit contact form:", error);
+      toast({
+        title: "Error Sending Message",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -94,7 +114,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your Name" {...field} />
+                          <Input placeholder="Your Name" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -107,7 +127,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="your.email@example.com" {...field} />
+                          <Input type="email" placeholder="your.email@example.com" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -120,7 +140,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Subject</FormLabel>
                         <FormControl>
-                          <Input placeholder="Regarding..." {...field} />
+                          <Input placeholder="Regarding..." {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -133,7 +153,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Message</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Your message here..." {...field} rows={5} />
+                          <Textarea placeholder="Your message here..." {...field} rows={5} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -152,8 +172,17 @@ export default function ContactPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6">
-                    <Send className="mr-2 h-5 w-5" /> Send Message
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-5 w-5" /> Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </Form>
