@@ -12,15 +12,15 @@ interface ArticleCardProps {
 
 export default function ArticleCard({ article }: ArticleCardProps) {
   return (
-    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="group flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
       {article.imageUrl && (
-        <div className="relative w-full h-56">
+        <div className="relative w-full h-56 overflow-hidden">
           <Image
             src={article.imageUrl}
             alt={article.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover"
+            className="object-cover group-hover:brightness-105 group-hover:scale-110 transition-all duration-300 ease-in-out"
             data-ai-hint={article.dataAiHint}
           />
         </div>

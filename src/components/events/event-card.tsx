@@ -12,15 +12,15 @@ interface EventCardProps {
 
 export default function EventCard({ event }: EventCardProps) {
   return (
-    <Card className="flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="group flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
       {event.imageUrl && (
-        <div className="relative w-full md:w-1/3 h-56 md:h-auto">
+        <div className="relative w-full md:w-1/3 h-56 md:h-auto overflow-hidden">
           <Image
             src={event.imageUrl}
             alt={event.title}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
+            className="object-cover group-hover:brightness-105 group-hover:scale-110 transition-all duration-300 ease-in-out"
             data-ai-hint={event.dataAiHint}
           />
         </div>
