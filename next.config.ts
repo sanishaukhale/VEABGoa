@@ -1,7 +1,13 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'export', // Enable static HTML export
+  // IMPORTANT: Replace 'your-repo-name' with your actual GitHub repository name
+  // If your site is at https://<username>.github.io/your-repo-name/
+  // If your site is at https://<username>.github.io/ (i.e., a user/org page using the <username>.github.io repo),
+  // then you can remove basePath and assetPrefix or set them to an empty string.
+  basePath: process.env.NODE_ENV === 'production' ? '/your-repo-name' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : '',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -9,6 +15,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true, // Required for next export with GitHub Pages
     remotePatterns: [
       {
         protocol: 'https',
