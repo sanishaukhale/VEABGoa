@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -5,9 +6,9 @@ const nextConfig: NextConfig = {
   // IMPORTANT: Replace 'your-repo-name' with your actual GitHub repository name
   // If your site is at https://<username>.github.io/your-repo-name/
   // If your site is at https://<username>.github.io/ (i.e., a user/org page using the <username>.github.io repo),
-  // then you can remove basePath and assetPrefix or set them to an empty string.
+  // then you can remove basePath or set it to an empty string.
   basePath: process.env.NODE_ENV === 'production' ? '/VEABGoa' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/VEABGoa/' : '',
+  // assetPrefix: process.env.NODE_ENV === 'production' ? '/VEABGoa/' : '', // Removed: Let Next.js handle asset prefixing with basePath
   typescript: {
     ignoreBuildErrors: true,
   },
