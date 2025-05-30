@@ -19,11 +19,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-// Only import the type statically, the function will be imported dynamically
-import type { AddArticleFormValues } from "./actions";
 import { Loader2, PlusCircle } from "lucide-react";
 
-// Schema for client-side validation, should match server action
+// Schema for client-side validation, duplicated from actions.ts to avoid type import issues with static export
 const addArticleFormSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }),
   slug: z.string().optional().refine(value => !value || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value), {
@@ -37,6 +35,8 @@ const addArticleFormSchema = z.object({
   dataAiHint: z.string().optional(),
 });
 
+type AddArticleFormValues = z.infer<typeof addArticleFormSchema>;
+
 
 export default function AddArticlePage() {
   const { toast } = useToast();
@@ -45,6 +45,7 @@ export default function AddArticlePage() {
 
   useEffect(() => {
     // Check if running in a static export environment (e.g., GitHub Pages build)
+    // NEXT_PUBLIC_BASE_PATH is set during GitHub Actions build for static export.
     if (process.env.NEXT_PUBLIC_BASE_PATH) {
       setIsStaticExport(true);
     }
@@ -82,7 +83,7 @@ export default function AddArticlePage() {
     }
 
     try {
-      // Dynamically import the server action
+      // Dynamically import the server action only in non-static environments
       const { saveArticle } = await import("./actions");
       const result = await saveArticle(data);
       if (result.success) {
