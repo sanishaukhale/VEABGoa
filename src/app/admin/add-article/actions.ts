@@ -1,9 +1,10 @@
 
-'use server';
+// Removed 'use server'; for static export compatibility.
+// This function will now execute client-side if imported and called.
 
 import { z } from 'zod';
 import { firestore } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp } from 'firebase/firestore'; // Changed serverTimestamp to Timestamp
 
 function slugify(text: string): string {
   if (!text) return '';
@@ -45,18 +46,20 @@ export async function saveArticle(formData: AddArticleFormValues) {
     slug = slugify(articleData.title);
   }
   
-  // Ensure slug is unique (basic check, for robust solution, query DB)
-  // For now, we assume admin will manage uniqueness or we rely on Firestore IDs
+  if (!firestore) {
+    console.error("Firestore is not initialized. Cannot save article.");
+    return { success: false, error: "Database connection error. Article not saved." };
+  }
 
   try {
     await addDoc(collection(firestore, 'articles'), {
       ...articleData,
       slug: slug,
-      createdAt: serverTimestamp(),
+      createdAt: Timestamp.now(), // Use client-side Timestamp
     });
     return { success: true, message: "Article saved successfully!" };
   } catch (error) {
-    console.error("Error saving article to Firestore:", error);
+    console.error("Error saving article to Firestore (client-side):", error);
     return { success: false, error: "Failed to save the article due to a server error." };
   }
 }
