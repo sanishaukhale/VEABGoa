@@ -1,39 +1,7 @@
 
-import ProjectCard from "@/components/projects/project-card";
-import type { Project } from "@/types";
-import { Sprout } from "lucide-react";
-import { firestore } from '@/lib/firebase';
-import { collection, getDocs, orderBy, query, Timestamp } from 'firebase/firestore';
+import { Sprout, Hourglass } from "lucide-react";
 
-async function getProjects(): Promise<Project[]> {
-  try {
-    const projectsCollection = collection(firestore, 'projects');
-    // Order by 'createdAt' timestamp in descending order to get newest first
-    const q = query(projectsCollection, orderBy('createdAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    
-    const projects = querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        description: data.description,
-        imageUrl: data.imageUrl || "https://placehold.co/600x400.png", // Default placeholder
-        dataAiHint: data.dataAiHint || "project image",
-        location: data.location,
-        createdAt: data.createdAt, // Keep the Timestamp for potential use
-      } as Project;
-    });
-    return projects;
-  } catch (error) {
-    console.error("Error fetching projects: ", error);
-    return []; // Return empty array on error
-  }
-}
-
-export default async function ProjectsPage() {
-  const projectsData = await getProjects();
-
+export default function ProjectsPage() {
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <header className="text-center mb-12">
@@ -44,17 +12,13 @@ export default async function ProjectsPage() {
         </p>
       </header>
 
-      {projectsData.length > 0 ? (
-        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projectsData.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      ) : (
-         <div className="text-center py-10">
-          <p className="text-xl text-muted-foreground">No projects found. Please check back soon or ensure projects are added to Firestore.</p>
-        </div>
-      )}
+      <div className="flex flex-col items-center justify-center text-center py-20">
+        <Hourglass size={64} className="mx-auto text-accent mb-6" />
+        <h2 className="text-3xl font-semibold text-primary mb-3">Coming Soon!</h2>
+        <p className="text-lg text-muted-foreground max-w-md">
+          We&apos;re working hard to bring you exciting updates on our projects. Please check back later!
+        </p>
+      </div>
     </div>
   );
 }
