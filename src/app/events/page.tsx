@@ -1,5 +1,18 @@
 
 import { CalendarHeart, Hourglass } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Events & Campaigns",
+  description: "Stay updated on VEAB Goa's upcoming events, workshops, and awareness campaigns. Join us in our efforts for environmental conservation in Goa. Event details coming soon!",
+  alternates: {
+    canonical: '/events',
+  },
+   openGraph: {
+    title: 'VEAB Goa Events - Join Our Conservation Efforts',
+    description: "Find out about upcoming environmental events, workshops, and campaigns hosted by VEAB Goa. Calendar updated regularly.",
+  },
+};
 
 export default function EventsPage() {
   return (

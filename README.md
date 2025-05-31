@@ -12,7 +12,7 @@ This application is built with:
 *   **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
 *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 *   **Generative AI (Optional, for future use):** [Genkit (by Google)](https://firebase.google.com/docs/genkit)
-*   **Backend/Database:** [Firebase](https://firebase.google.com/) (Firestore for data storage)
+*   **Backend/Database:** [Firebase](https://firebase.google.com/) (Firestore for data storage, Firebase Authentication for admin users)
 *   **Version Control:** Git
 *   **Deployment (Static Version):** GitHub Pages via GitHub Actions
 
@@ -33,7 +33,7 @@ cd your-repo-name
 
 ### 2. Set Up Environment Variables
 
-The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, projects, contact form submissions) and potentially for other services. It also uses an environment variable for the `basePath` in certain contexts.
+The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, projects, contact form submissions) and Firebase Authentication. It also uses an environment variable for the `basePath` in certain contexts.
 
 *   Copy the example environment file:
     ```bash
@@ -59,6 +59,7 @@ The application requires Firebase credentials to connect to Firestore for dynami
     ```
 
     **Note:** `src/.env.local` is gitignored and should never be committed to the repository.
+    **VERY IMPORTANT:** After creating or modifying `src/.env.local`, you **MUST RESTART** your Next.js development server (e.g., stop and re-run `npm run dev` or `yarn dev`) for the changes to take effect.
 
 ### 3. Install Dependencies
 
@@ -71,36 +72,42 @@ yarn install
 ### 4. Firebase Setup
 
 *   **Enable Firestore:** In your Firebase project, enable Firestore Database.
-*   **Collections:** Create the following collections:
+*   **Enable Firebase Authentication:**
+    *   Go to the "Authentication" section in your Firebase console.
+    *   Click on the "Sign-in method" tab.
+    *   Enable the "Email/Password" provider (or any other provider you intend to use for admin access).
+    *   Create at least one admin user manually in the "Users" tab of the Authentication section. You will use these credentials to log into the admin panel.
+*   **Firestore Collections:** Create the following collections:
     *   `articles`: For news and blog posts. (See `src/types/index.ts` for `Article` structure)
     *   `events`: For upcoming events. (See `src/types/index.ts` for `Event` structure)
     *   `projects`: For conservation projects. (See `src/types/index.ts` for `Project` structure)
     *   `contactMessages`: For storing messages from the contact form.
-*   **Security Rules:** Configure Firestore security rules. A basic starting point for development (allowing public reads for articles/events/projects and creates for contact messages) is:
+*   **Firestore Security Rules:** Configure Firestore security rules. A starting point allowing public reads for content, creates for contact messages, and writes to articles/projects only for authenticated users:
     ```javascript
     rules_version = '2';
     service cloud.firestore {
       match /databases/{database}/documents {
         match /articles/{articleId} {
           allow read: if true;
-          allow write: if false; // Change for admin system
+          allow write: if request.auth != null; // Only authenticated users can write
         }
         match /events/{eventId} {
           allow read: if true;
-          allow write: if false; // Change for admin system
+          // allow write: if request.auth != null; // Uncomment if events are admin-managed
         }
         match /projects/{projectId} {
           allow read: if true;
-          allow write: if false; // Change for admin system
+          allow write: if request.auth != null; // Only authenticated users can write
         }
         match /contactMessages/{messageId} {
           allow create: if true;
-          allow read, update, delete: if false; // Change for admin system
+          allow read, update, delete: if request.auth != null; // Admins can read messages
         }
+        // Add rules for other collections as needed
       }
     }
     ```
-    **Important:** Secure these rules properly before going to production.
+    **Important:** Secure these rules properly for production. For example, you might want to restrict write access to specific admin UIDs rather than any authenticated user.
 
 ### 5. Running the Development Server
 
@@ -112,7 +119,7 @@ npm run dev
 yarn dev
 ```
 
-The application will reload automatically when you make changes.
+The application will reload automatically when you make changes to most code files. However, **if you change `src/.env.local`, you must restart the server.**
 
 ### 6. Running the Genkit Development Server (If using Genkit features)
 
@@ -145,22 +152,23 @@ This project is configured for deployment to GitHub Pages via a GitHub Actions w
 *   **Repository Name:** Ensure `basePath` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa`.
 *   **GitHub Secrets:** Configure the Firebase environment variables (from `src/.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
 *   **Limitations:**
-    *   Server Actions (used for the contact form, admin article submission, and admin project submission) **will not work** on GitHub Pages. The site will simulate success for these forms but no data will be saved to Firestore.
-    *   News, events, and projects will be static content generated at build time.
+    *   Firebase Authentication will work client-side (users can log in).
+    *   Server Actions (used for the contact form, admin article submission, and admin project submission) **will not fully work** on GitHub Pages. The site will simulate success for these forms after login, but no data will be saved to Firestore from the static site. The admin panel access control itself (login) is client-side and will function.
+    *   News, events, and projects will be static content generated at build time (unless fetched client-side, which is the current setup for the "Coming Soon" pages).
 
 ### Other Hosting (e.g., Vercel, Netlify, Firebase Hosting)
 
-For full functionality, including Server Actions, deploy to a platform that supports Next.js Node.js runtime.
+For full functionality, including Server Actions and proper backend database interactions, deploy to a platform that supports Next.js Node.js runtime.
 *   You'll need to configure environment variables on your chosen hosting platform.
 *   `next.config.ts` may need adjustments (e.g., removing `output: 'export'`, `basePath` if not needed for the hosting provider).
 
 ## Admin Interface
 
-Basic admin interfaces are available at:
-*   `/admin/add-article`: To add new news articles.
-*   `/admin/add-project`: To add new projects.
-*   **Security:** These interfaces are currently **not secured**. Anyone with the URL can access them. Implementing proper authentication and authorization is a critical next step for any production use.
-*   **Functionality on GitHub Pages:** The admin interfaces will be present on the static site, but the "Publish" buttons will be disabled as server actions do not work.
+Admin interfaces are available at:
+*   `/admin/login`: To log in to the admin panel.
+*   `/admin/add-article`: To add new news articles (requires login).
+*   `/admin/add-project`: To add new projects (requires login).
+*   **Functionality on GitHub Pages:** Admin users can log in. The "Publish" buttons on admin forms will be enabled after login but will simulate success without actual database writes due to static site limitations.
 
 ## Contributing
 

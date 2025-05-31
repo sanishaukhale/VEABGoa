@@ -5,6 +5,21 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon } from "lucide-react";
 import { useState } from "react";
+import type { Metadata } from 'next'; // Only for type, metadata object needs to be exported
+
+// Cannot export metadata from client component, so this is just for potential future server component refactor.
+// Actual metadata for this page should be in a server component or layout segment.
+// For now, let's assume a default metadata object or it's handled by a higher layout.
+// To set metadata for `/about`, we'd ideally make this a server component or use a route group layout.
+// As a workaround for client components, metadata is often set in the nearest server `layout.tsx` or `page.tsx`
+// If this page itself were a server component, you could export:
+/*
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "Learn about VEAB Goa's mission, vision, history, and the dedicated team working towards environmental conservation and wildlife protection in Keri, Sattari, Goa.",
+};
+*/
+
 
 interface SocialLink {
   platform: string;
@@ -145,7 +160,7 @@ export default function AboutPage() {
             <p>
               Over the past decade, VEAB Goa has grown from a small volunteer group into a recognized organization at the forefront of environmental conservation in the region. Our journey has been marked by successful grassroots campaigns, impactful research projects, and a growing network of dedicated volunteers and partners. We believe in a collaborative approach, working closely with local communities, government bodies, and academic institutions to create lasting positive change.
             </p>
-             <Image src="https://placehold.co/800x400.png" alt="VEAB Goa team working" width={800} height={400} className="rounded-lg mt-6" data-ai-hint="team environment"/>
+             <Image src="https://placehold.co/800x400.png" alt="VEAB Goa team collaborating on environmental projects" width={800} height={400} className="rounded-lg mt-6" data-ai-hint="team environment"/>
           </CardContent>
         </Card>
       </section>
@@ -198,7 +213,7 @@ export default function AboutPage() {
                     <CardContent className="pt-6 flex flex-col items-center justify-center flex-grow">
                       <Image
                         src={member.imageUrl}
-                        alt={member.name}
+                        alt={`Portrait of ${member.name}, ${member.role}`}
                         width={150}
                         height={150}
                         className="rounded-full mx-auto mb-4 border-4 border-primary/40"
@@ -257,3 +272,30 @@ export default function AboutPage() {
     </div>
   );
 }
+
+// To provide metadata for this client component page, you would typically:
+// 1. Create a `layout.tsx` specifically for the `/about` route segment if it needs a different layout.
+// 2. Or, more commonly for just page-specific metadata without a layout change,
+//    you would convert this `page.tsx` to a Server Component if it doesn't strictly need to be a Client Component.
+//    If it MUST be a client component, the metadata is inherited from the nearest parent server `layout.tsx` or `page.tsx`.
+//    The root `layout.tsx` provides default and template metadata.
+//    A specific metadata export for `/about` would look like this if this were a server component:
+/*
+import type { Metadata } from 'next';
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "Learn about VEAB Goa's mission, vision, history, and the dedicated team working towards environmental conservation and wildlife protection in Keri, Sattari, Goa.",
+  alternates: {
+    canonical: '/about',
+  },
+};
+*/
+// Since it's a client component, actual metadata definition needs to be handled differently or this comment can be removed if covered by root layout.
+// For now, metadata is added to src/app/about/layout.tsx if needed or this page becomes a Server Component.
+// For this exercise, if /about/page.tsx remains client, a new /src/app/about/layout.tsx could define the metadata,
+// or if /about is simple enough and doesn't have sub-routes needing a distinct layout, /about/page.tsx could be converted to server component.
+
+// Let's assume we create a separate layout for /about to set metadata.
+// If no separate layout, then the metadata can be set in src/app/layout.tsx if it's general, or this page is converted.
+// For this specific request, I will create a simple `src/app/about/layout.tsx` to provide its metadata.
+

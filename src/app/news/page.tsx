@@ -1,5 +1,19 @@
 
 import { Newspaper, Hourglass } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "News & Blog",
+  description: "Read the latest news, articles, and blog posts from VEAB Goa. Stay informed about our activities, environmental insights, and conservation stories. Fresh content coming soon!",
+  alternates: {
+    canonical: '/news',
+  },
+  openGraph: {
+    title: 'VEAB Goa News & Blog - Latest Updates and Insights',
+    description: "Keep up with VEAB Goa's activities, environmental news, and conservation stories on our blog. New articles posted regularly.",
+  },
+};
+
 
 export default function NewsPage() {
   return (

@@ -5,6 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowRight, Leaf, Users, Sprout as ProjectIcon, CalendarDays as EventIcon } from "lucide-react";
 import type { Project, Event } from "@/types";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Home', // Will be combined with template: '%s | VEAB Goa'
+  description: 'Welcome to VEAB Goa! We are dedicated to environmental education, wildlife conservation, and fostering a sustainable future for Goa. Discover our projects, events, and how you can get involved.',
+  openGraph: {
+    title: 'VEAB Goa | Environmental Conservation & Wildlife Protection',
+    description: 'Join VEAB Goa in our mission to protect Goa\'s natural heritage through education, action, and community involvement.',
+    // other OG tags can be inherited or overridden
+  },
+};
+
 
 // Sample data - replace with actual data fetching in a real app
 const featuredProjects: Project[] = [
@@ -45,7 +57,7 @@ export default function HomePage() {
       <section className="relative h-[70vh] min-h-[400px] flex items-center justify-center text-center bg-primary/10 overflow-hidden">
         <Image
           src="https://placehold.co/1600x900.png"
-          alt="Goan Landscape"
+          alt="Lush green landscape representing Goa's natural beauty"
           layout="fill"
           objectFit="cover"
           className="opacity-30"

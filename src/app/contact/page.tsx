@@ -21,6 +21,15 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 // import { saveContactMessage } from "./actions"; // Server Action not used for static export
+// Metadata for client components is tricky. Ideally handled by a parent server component or layout.
+// If this was a server component:
+/*
+import type { Metadata } from 'next';
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description: "Get in touch with VEAB Goa. Send us a message, find our location, or contact us via email or phone. We'd love to hear from you!",
+};
+*/
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -38,10 +47,6 @@ export default function ContactPage() {
   const [isStaticExport, setIsStaticExport] = useState(false);
 
   useEffect(() => {
-    // A simple way to check if the page is likely part of a static export
-    // In a static export, Server Actions are not available.
-    // This check assumes `window` is available, which is true on the client.
-    // NEXT_PUBLIC_BASE_PATH is set during GitHub Actions build for static export.
     if (process.env.NEXT_PUBLIC_BASE_PATH) {
       setIsStaticExport(true);
     }
@@ -72,11 +77,9 @@ export default function ContactPage() {
 
     setIsLoading(true);
 
-    // For static export (GitHub Pages), Server Actions won't work.
-    // We'll simulate success to avoid breaking the build and provide user feedback.
     if (isStaticExport || typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
       console.log("Static export mode: Contact form submission simulated. Data not sent to server.", data);
-      setTimeout(() => { // Simulate network delay
+      setTimeout(() => { 
         toast({
           title: "Message Sent!",
           description: "Thank you for contacting us. We will get back to you shortly.",
@@ -87,14 +90,8 @@ export default function ContactPage() {
       }, 1000);
       return;
     }
-
-    // The following block would be for environments supporting Server Actions.
-    // Since this build is for static export, this part is effectively disabled by the check above.
-    // If you deploy to a platform that supports Server Actions, this logic would run.
-    /*
+    
     try {
-      // This dynamic import ensures `saveContactMessage` (and thus 'use server')
-      // isn't processed eagerly by the static export analyzer if not used.
       const { saveContactMessage } = await import("./actions");
       const result = await saveContactMessage(data);
       if (result.success) {
@@ -121,7 +118,6 @@ export default function ContactPage() {
     } finally {
       setIsLoading(false);
     }
-    */
   }
 
   return (
@@ -151,7 +147,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your Name" {...field} disabled={isLoading} />
+                          <Input placeholder="Your Name" {...field} disabled={isLoading} aria-required="true" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -164,7 +160,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="your.email@example.com" {...field} disabled={isLoading} />
+                          <Input type="email" placeholder="your.email@example.com" {...field} disabled={isLoading} aria-required="true" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -177,7 +173,7 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Subject</FormLabel>
                         <FormControl>
-                          <Input placeholder="Regarding..." {...field} disabled={isLoading} />
+                          <Input placeholder="Regarding..." {...field} disabled={isLoading} aria-required="true" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -190,13 +186,12 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Message</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Your message here..." {...field} rows={5} disabled={isLoading} />
+                          <Textarea placeholder="Your message here..." {...field} rows={5} disabled={isLoading} aria-required="true" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  {/* Honeypot field: hidden from users, to catch bots */}
                   <FormField
                     control={form.control}
                     name="honeypot"

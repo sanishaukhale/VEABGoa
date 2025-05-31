@@ -1,5 +1,18 @@
 
 import { Sprout, Hourglass } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Our Conservation Projects",
+  description: "Explore VEAB Goa's conservation projects aimed at protecting and preserving Goa's unique environment. Details on our initiatives coming soon!",
+  alternates: {
+    canonical: '/projects',
+  },
+  openGraph: {
+    title: 'VEAB Goa Conservation Projects - Protecting Goa\'s Environment',
+    description: "Learn about the various environmental conservation projects undertaken by VEAB Goa. Discover how we are making a difference.",
+  },
+};
 
 export default function ProjectsPage() {
   return (
