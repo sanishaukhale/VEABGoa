@@ -1,5 +1,9 @@
 
+import dotenv from 'dotenv';
 import type {NextConfig} from 'next';
+
+// Load environment variables from src/.env.local
+dotenv.config({ path: './src/.env.local' });
 
 const nextConfig: NextConfig = {
   output: 'export', // Enable static HTML export
@@ -8,7 +12,6 @@ const nextConfig: NextConfig = {
   // If your site is at https://<username>.github.io/ (i.e., a user/org page using the <username>.github.io repo),
   // then you can remove basePath or set it to an empty string.
   basePath: process.env.NODE_ENV === 'production' ? '/VEABGoa' : '',
-  // assetPrefix: process.env.NODE_ENV === 'production' ? '/VEABGoa/' : '', // Removed: Let Next.js handle asset prefixing with basePath
   typescript: {
     ignoreBuildErrors: true,
   },
