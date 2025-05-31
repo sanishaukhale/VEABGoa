@@ -8,6 +8,7 @@ export interface Project {
   imageUrl: string;
   dataAiHint?: string;
   location?: string;
+  createdAt?: Timestamp; // Added for sorting and consistency
 }
 
 export interface Event {

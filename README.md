@@ -33,7 +33,7 @@ cd your-repo-name
 
 ### 2. Set Up Environment Variables
 
-The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, contact form submissions) and potentially for other services. It also uses an environment variable for the `basePath` in certain contexts.
+The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, projects, contact form submissions) and potentially for other services. It also uses an environment variable for the `basePath` in certain contexts.
 
 *   Copy the example environment file:
     ```bash
@@ -74,8 +74,9 @@ yarn install
 *   **Collections:** Create the following collections:
     *   `articles`: For news and blog posts. (See `src/types/index.ts` for `Article` structure)
     *   `events`: For upcoming events. (See `src/types/index.ts` for `Event` structure)
+    *   `projects`: For conservation projects. (See `src/types/index.ts` for `Project` structure)
     *   `contactMessages`: For storing messages from the contact form.
-*   **Security Rules:** Configure Firestore security rules. A basic starting point for development (allowing public reads for articles/events and creates for contact messages) is:
+*   **Security Rules:** Configure Firestore security rules. A basic starting point for development (allowing public reads for articles/events/projects and creates for contact messages) is:
     ```javascript
     rules_version = '2';
     service cloud.firestore {
@@ -85,6 +86,10 @@ yarn install
           allow write: if false; // Change for admin system
         }
         match /events/{eventId} {
+          allow read: if true;
+          allow write: if false; // Change for admin system
+        }
+        match /projects/{projectId} {
           allow read: if true;
           allow write: if false; // Change for admin system
         }
@@ -137,23 +142,25 @@ This command generates static HTML/CSS/JS files in the `out` directory, suitable
 
 This project is configured for deployment to GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
 
-*   **Repository Name:** Ensure `basePath` and `assetPrefix` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa` or `/VEABGoa/` as appropriate.
+*   **Repository Name:** Ensure `basePath` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa`.
 *   **GitHub Secrets:** Configure the Firebase environment variables (from `src/.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
 *   **Limitations:**
-    *   Server Actions (used for the contact form and admin article submission) **will not work** on GitHub Pages. The site will simulate success for these forms but no data will be saved to Firestore.
-    *   News and events will be static content generated at build time.
+    *   Server Actions (used for the contact form, admin article submission, and admin project submission) **will not work** on GitHub Pages. The site will simulate success for these forms but no data will be saved to Firestore.
+    *   News, events, and projects will be static content generated at build time.
 
 ### Other Hosting (e.g., Vercel, Netlify, Firebase Hosting)
 
 For full functionality, including Server Actions, deploy to a platform that supports Next.js Node.js runtime.
 *   You'll need to configure environment variables on your chosen hosting platform.
-*   `next.config.ts` may need adjustments (e.g., removing `output: 'export'`, `basePath`, `assetPrefix` if not needed for the hosting provider).
+*   `next.config.ts` may need adjustments (e.g., removing `output: 'export'`, `basePath` if not needed for the hosting provider).
 
 ## Admin Interface
 
-A basic admin interface is available at `/admin/add-article` to add new news articles.
-*   **Security:** This interface is currently **not secured**. Anyone with the URL can access it. Implementing proper authentication and authorization is a critical next step for any production use.
-*   **Functionality on GitHub Pages:** The admin interface will be present on the static site, but the "Publish Article" button will be disabled as server actions do not work.
+Basic admin interfaces are available at:
+*   `/admin/add-article`: To add new news articles.
+*   `/admin/add-project`: To add new projects.
+*   **Security:** These interfaces are currently **not secured**. Anyone with the URL can access them. Implementing proper authentication and authorization is a critical next step for any production use.
+*   **Functionality on GitHub Pages:** The admin interfaces will be present on the static site, but the "Publish" buttons will be disabled as server actions do not work.
 
 ## Contributing
 
