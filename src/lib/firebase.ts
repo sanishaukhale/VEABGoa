@@ -14,7 +14,10 @@ const firebaseConfigValues = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
-const requiredEnvVars: (keyof typeof firebaseConfigValues)[] = [
+// These are the keys from firebaseConfigValues object
+type FirebaseConfigKey = keyof typeof firebaseConfigValues;
+
+const requiredConfigKeys: FirebaseConfigKey[] = [
   'apiKey',
   'authDomain',
   'projectId',
@@ -23,10 +26,19 @@ const requiredEnvVars: (keyof typeof firebaseConfigValues)[] = [
   'appId',
 ];
 
-let configError = false;
-const errorMessages: string[] = [];
+// Maps JS config keys to their full environment variable names
+const envVarNameMap: Record<FirebaseConfigKey, string> = {
+  apiKey: 'NEXT_PUBLIC_FIREBASE_API_KEY',
+  authDomain: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+  projectId: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  storageBucket: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+  messagingSenderId: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+  appId: 'NEXT_PUBLIC_FIREBASE_APP_ID',
+  measurementId: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
+};
 
-const placeholderValues: Record<string, string> = {
+// Placeholder values expected from the .env.local.example file, keyed by JS config key
+const placeholderValues: Partial<Record<FirebaseConfigKey, string>> = {
   apiKey: "YOUR_API_KEY_FROM_ENV_LOCAL",
   authDomain: "YOUR_AUTH_DOMAIN_FROM_ENV_LOCAL",
   projectId: "YOUR_PROJECT_ID_FROM_ENV_LOCAL",
@@ -35,16 +47,19 @@ const placeholderValues: Record<string, string> = {
   appId: "YOUR_APP_ID_FROM_ENV_LOCAL",
 };
 
-requiredEnvVars.forEach(key => {
-  const envVarName = `NEXT_PUBLIC_FIREBASE_${key.toUpperCase()}`;
+let configError = false;
+const errorMessages: string[] = [];
+
+requiredConfigKeys.forEach(key => {
+  const actualEnvVarName = envVarNameMap[key];
   const value = firebaseConfigValues[key];
   const placeholder = placeholderValues[key];
 
   if (!value) {
-    errorMessages.push(`CRITICAL Firebase Configuration Error: ${envVarName} is missing or empty.`);
+    errorMessages.push(`CRITICAL Firebase Configuration Error: ${actualEnvVarName} is missing or empty.`);
     configError = true;
   } else if (placeholder && value === placeholder) {
-    errorMessages.push(`CRITICAL Firebase Configuration Error: ${envVarName} is still set to the placeholder value "${placeholder}".`);
+    errorMessages.push(`CRITICAL Firebase Configuration Error: ${actualEnvVarName} is still set to the placeholder value "${placeholder}".`);
     configError = true;
   }
 });
