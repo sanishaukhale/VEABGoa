@@ -11,13 +11,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
+const adminBasePath = process.env.NEXT_PUBLIC_BASE_PATH || ''; // Renamed to avoid conflict
+
 // This component will be the shell for authenticated admin pages
 function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
+  // Using adminBasePath for images specific to this layout
+  
   useEffect(() => {
     if (!loading && !user && pathname !== '/admin/login') {
       router.replace('/admin/login');
@@ -64,7 +66,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-muted/40">
       <aside className="w-64 bg-card p-6 shadow-lg flex flex-col">
         <Link href="/" className="flex items-center gap-2 mb-8 text-primary">
-            <Image src={`${basePath}/veab-logo.png`} alt="VEAB Logo" width={32} height={32} />
+            <Image src={`${adminBasePath}/veab-logo.png`} alt="VEAB Logo" width={32} height={32} />
             <span className="text-2xl font-bold">Goa Admin</span>
         </Link>
         <nav className="flex-grow space-y-2">
@@ -98,3 +100,5 @@ export default function AdminLayout({
   // AuthProvider is in the root layout, so useAuth can be called directly in AdminShell.
   return <AdminShell>{children}</AdminShell>;
 }
+
+    

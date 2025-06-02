@@ -18,9 +18,10 @@ const navLinks = [
   { href: "/contact", label: "Contact", icon: Mail },
 ];
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function Header() {
   const pathname = usePathname();
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   return (
     <header className="bg-card shadow-md sticky top-0 z-50">
@@ -88,3 +89,5 @@ export default function Header() {
     </header>
   );
 }
+
+    

@@ -10,12 +10,14 @@ interface ProjectCardProps {
   project: Project;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Card className="group flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
       <div className="relative w-full h-56 overflow-hidden">
         <Image
-          src={project.imageUrl}
+          src={project.imageUrl.startsWith('https://') ? project.imageUrl : `${basePath}${project.imageUrl}`}
           alt={project.title}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -46,3 +48,5 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     </Card>
   );
 }
+
+    

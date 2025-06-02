@@ -3,8 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function Footer() {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   return (
     <footer className="bg-secondary text-secondary-foreground py-8">
       <div className="container mx-auto px-4">
@@ -52,3 +53,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+    

@@ -10,13 +10,15 @@ interface ArticleCardProps {
   article: Article;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function ArticleCard({ article }: ArticleCardProps) {
   return (
     <Card className="group flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
       {article.imageUrl && (
         <div className="relative w-full h-56 overflow-hidden">
           <Image
-            src={article.imageUrl}
+            src={article.imageUrl.startsWith('https://') ? article.imageUrl : `${basePath}${article.imageUrl}`}
             alt={article.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -54,3 +56,5 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     </Card>
   );
 }
+
+    

@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 // Sample data - replace with actual data fetching in a real app
 const featuredProjects: Project[] = [
@@ -24,7 +25,7 @@ const featuredProjects: Project[] = [
     id: "1",
     title: "Mangrove Reforestation Drive",
     description: "Restoring vital mangrove ecosystems along Goa's coastline for biodiversity and coastal protection.",
-    imageUrl: "https://placehold.co/600x400.png",
+    imageUrl: "https://placehold.co/600x400.png", // Placeholder, will not be prefixed
     dataAiHint: "mangrove forest",
     location: "Coastal Goa",
   },
@@ -32,7 +33,7 @@ const featuredProjects: Project[] = [
     id: "2",
     title: "Riverine Waste Management",
     description: "Implementing innovative solutions to tackle plastic pollution in Goa's rivers.",
-    imageUrl: "https://placehold.co/600x400.png",
+    imageUrl: "https://placehold.co/600x400.png", // Placeholder, will not be prefixed
     dataAiHint: "river pollution",
     location: "Major Rivers, Goa",
   },
@@ -45,7 +46,7 @@ const upcomingEvents: Event[] = [
     date: "August 15, 2024",
     venue: "Panjim Community Hall",
     description: "Join us for an interactive workshop on sustainable living and local conservation efforts.",
-    imageUrl: "https://placehold.co/600x400.png",
+    imageUrl: "https://placehold.co/600x400.png", // Placeholder, will not be prefixed
     dataAiHint: "community workshop",
   },
 ];
@@ -56,7 +57,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[400px] flex items-center justify-center text-center bg-primary/10 overflow-hidden">
         <Image
-          src="https://placehold.co/1600x900.png"
+          src="https://placehold.co/1600x900.png" // Placeholder, will not be prefixed
           alt="Lush green landscape representing Goa's natural beauty"
           layout="fill"
           objectFit="cover"
@@ -102,7 +103,7 @@ export default function HomePage() {
               <Card key={project.id} className="group overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
                 <div className="relative w-full h-56 overflow-hidden">
                   <Image
-                    src={project.imageUrl}
+                    src={project.imageUrl.startsWith('https://') ? project.imageUrl : `${basePath}${project.imageUrl}`}
                     alt={project.title}
                     width={600}
                     height={400}
@@ -143,7 +144,7 @@ export default function HomePage() {
                 {event.imageUrl && 
                   <div className="relative w-full h-48 overflow-hidden">
                     <Image
-                      src={event.imageUrl}
+                      src={event.imageUrl.startsWith('https://') ? event.imageUrl : `${basePath}${event.imageUrl}`}
                       alt={event.title}
                       width={600}
                       height={300}
@@ -188,3 +189,5 @@ export default function HomePage() {
     </>
   );
 }
+
+    

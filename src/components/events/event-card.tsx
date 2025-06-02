@@ -10,13 +10,15 @@ interface EventCardProps {
   event: Event;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function EventCard({ event }: EventCardProps) {
   return (
     <Card className="group flex flex-col md:flex-row h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out hover:scale-[1.02]">
       {event.imageUrl && (
         <div className="relative w-full md:w-1/3 h-56 md:h-auto overflow-hidden">
           <Image
-            src={event.imageUrl}
+            src={event.imageUrl.startsWith('https://') ? event.imageUrl : `${basePath}${event.imageUrl}`}
             alt={event.title}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -61,3 +63,5 @@ export default function EventCard({ event }: EventCardProps) {
     </Card>
   );
 }
+
+    
