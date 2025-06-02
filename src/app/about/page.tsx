@@ -44,7 +44,7 @@ export default function AboutPage() {
     {
       name: "Chandrakant Shinde",
       role: "President",
-      imageUrl: "/team-chandrakant-shinde.jpg", // Updated image path
+      imageUrl: "/chandrakant_shinde.png", 
       intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
       profession: "Environmental Leader",
       socials: [
@@ -55,7 +55,7 @@ export default function AboutPage() {
     {
       name: "Sangam Patil",
       role: "Vice President",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "/sangam_patil.jpg",
       dataAiHint: "person smiling",
       intro: "Supporting strategic initiatives and fostering partnerships for sustainable development in the region.",
       profession: "Conservation Strategist",
@@ -64,7 +64,7 @@ export default function AboutPage() {
     {
       name: "Deepak Gawas",
       role: "Secretary",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "/deepak_gawas.png",
       dataAiHint: "professional headshot",
       intro: "Overseeing administrative operations and ensuring smooth execution of VEAB's projects and programs.",
       profession: "Operations Manager",
@@ -73,7 +73,7 @@ export default function AboutPage() {
     {
       name: "Ramesh Zarmekar",
       role: "Treasurer",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "/ramesh_zarmekar.png",
       dataAiHint: "person portrait",
       intro: "Managing financial resources with transparency to support VEAB's mission and long-term sustainability.",
       profession: "Financial Advisor",
