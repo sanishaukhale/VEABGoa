@@ -1,7 +1,7 @@
 
-import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp, type FirebaseOptions, type FirebaseApp } from 'firebase/app';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, type Auth } from 'firebase/auth';
 
 // Firebase configuration will now be read from environment variables
 const firebaseConfigValues = {
@@ -14,7 +14,6 @@ const firebaseConfigValues = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
-// These are the keys from firebaseConfigValues object
 type FirebaseConfigKey = keyof typeof firebaseConfigValues;
 
 const requiredConfigKeys: FirebaseConfigKey[] = [
@@ -26,7 +25,6 @@ const requiredConfigKeys: FirebaseConfigKey[] = [
   'appId',
 ];
 
-// Maps JS config keys to their full environment variable names
 const envVarNameMap: Record<FirebaseConfigKey, string> = {
   apiKey: 'NEXT_PUBLIC_FIREBASE_API_KEY',
   authDomain: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
@@ -37,7 +35,6 @@ const envVarNameMap: Record<FirebaseConfigKey, string> = {
   measurementId: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
 };
 
-// Placeholder values expected from the .env.local.example file, keyed by JS config key
 const placeholderValues: Partial<Record<FirebaseConfigKey, string>> = {
   apiKey: "YOUR_API_KEY_FROM_ENV_LOCAL",
   authDomain: "YOUR_AUTH_DOMAIN_FROM_ENV_LOCAL",
@@ -64,7 +61,51 @@ requiredConfigKeys.forEach(key => {
   }
 });
 
-if (configError) {
+const firebaseConfig: FirebaseOptions = firebaseConfigValues as FirebaseOptions;
+
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let firestore: Firestore | null = null;
+
+if (!configError) { // Only proceed if basic env var checks pass (not missing, not placeholder)
+  if (!getApps().length) {
+    try {
+      app = initializeApp(firebaseConfig);
+    } catch (e: any) {
+      console.error(
+        "Firebase core initialization failed during initializeApp():",
+        e.message,
+        "\nThis can happen with a malformed configuration object even if env vars are present."
+      );
+      configError = true; // Mark as error if initializeApp itself fails
+    }
+  } else {
+    app = getApp();
+  }
+
+  if (app && !configError) { // Only try to get services if app initialized and no *initial* configError
+    try {
+      auth = getAuth(app);
+    } catch (e: any) {
+      console.error(
+        "Firebase Auth initialization (getAuth) failed:",
+        e.message,
+        "\nThis typically occurs due to an invalid API key, auth domain, or project ID in your .env.local file. Please verify these values in your Firebase project console and ensure .env.local is correctly set up and your dev server was restarted."
+      );
+      auth = null; // Ensure auth is null if getAuth fails
+    }
+
+    try {
+      firestore = getFirestore(app);
+    } catch (e: any) {
+      console.error("Firebase Firestore initialization (getFirestore) failed:", e.message);
+      firestore = null; // Ensure firestore is null if getFirestore fails
+    }
+  }
+}
+
+if (configError && errorMessages.length > 0) {
+  // This message is for when env vars are missing/placeholders
   console.error(
     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
     errorMessages.join("\n") + "\n" +
@@ -73,32 +114,13 @@ if (configError) {
     "Firebase will not initialize correctly. You MUST RESTART your development server after correcting 'src/.env.local'.\n" +
     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   );
+} else if (app && (!auth || !firestore) && !configError) { // Added !configError here to avoid double logging if initial checks failed
+    // This message is for when env vars might be present (so !configError), but service initialization still failed
+    console.warn(
+        "Firebase services (Auth/Firestore) may not be fully initialized. This could be due to invalid credentials (even if present in .env.local) or other Firebase setup issues. Some app features might not work as expected."
+    );
 }
 
-const firebaseConfig: FirebaseOptions = firebaseConfigValues as FirebaseOptions;
 
-// Initialize Firebase
-let app;
-if (!getApps().length) {
-  // Only attempt to initialize if no critical config errors were found
-  if (!configError) {
-    try {
-      app = initializeApp(firebaseConfig);
-    } catch (e: any) {
-      console.error("Firebase initialization failed:", e.message);
-      console.error("This often happens due to an invalid configuration, even if environment variables seem present. Double-check your Firebase project settings and .env.local values.");
-      configError = true; // Mark as error to prevent further Firebase calls
-    }
-  } else {
-    console.warn("Firebase initialization skipped due to critical configuration errors.");
-  }
-} else {
-  app = getApp();
-}
-
-// Conditionally initialize Firestore and Auth only if app was successfully initialized
-const firestore = !configError && app ? getFirestore(app) : null;
-const auth = !configError && app ? getAuth(app) : null;
-
-// Export nulls if there was an error so the app can degrade gracefully or components can check
 export { app, firestore, auth };
+
