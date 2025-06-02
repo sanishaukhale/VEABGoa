@@ -31,7 +31,7 @@ interface TeamMember {
   name: string;
   role: string;
   imageUrl: string;
-  dataAiHint: string;
+  dataAiHint?: string; // Make optional as we are removing it for updated images
   intro: string;
   profession: string;
   socials?: SocialLink[];
@@ -44,8 +44,7 @@ export default function AboutPage() {
     {
       name: "Chandrakant Shinde",
       role: "President",
-      imageUrl: "https://placehold.co/300x300.png",
-      dataAiHint: "professional portrait",
+      imageUrl: "/team-chandrakant-shinde.jpg", // Updated image path
       intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
       profession: "Environmental Leader",
       socials: [
@@ -160,7 +159,7 @@ export default function AboutPage() {
             <p>
               Over the past decade, VEAB Goa has grown from a small volunteer group into a recognized organization at the forefront of environmental conservation in the region. Our journey has been marked by successful grassroots campaigns, impactful research projects, and a growing network of dedicated volunteers and partners. We believe in a collaborative approach, working closely with local communities, government bodies, and academic institutions to create lasting positive change.
             </p>
-             <Image src="https://placehold.co/800x400.png" alt="VEAB Goa team collaborating on environmental projects" width={800} height={400} className="rounded-lg mt-6" data-ai-hint="team environment"/>
+             <Image src="/veab-our-story.jpg" alt="VEAB Goa team collaborating on environmental projects" width={800} height={400} className="rounded-lg mt-6" />
           </CardContent>
         </Card>
       </section>
@@ -217,7 +216,8 @@ export default function AboutPage() {
                         width={150}
                         height={150}
                         className="rounded-full mx-auto mb-4 border-4 border-primary/40"
-                        data-ai-hint={member.dataAiHint}
+                        // Conditional data-ai-hint if it exists
+                        {...(member.dataAiHint && { 'data-ai-hint': member.dataAiHint })}
                       />
                       <h3 className="text-xl font-semibold text-foreground">{member.name}</h3>
                       <p className="text-accent">{member.role}</p>
@@ -244,11 +244,11 @@ export default function AboutPage() {
                           <h4 className="font-semibold text-accent/90 text-sm">Connect</h4>
                           <div className="flex space-x-3 mt-1">
                             {member.socials.map(social => (
-                              <a 
-                                key={social.platform} 
-                                href={social.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
+                              <a
+                                key={social.platform}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-primary hover:text-primary/70"
                                 onClick={(e) => e.stopPropagation()} // Prevents card flip when clicking social icon
                               >
