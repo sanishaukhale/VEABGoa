@@ -1,16 +1,12 @@
 
-import dotenv from 'dotenv';
 import type {NextConfig} from 'next';
 
-// Load environment variables from src/.env.local
-dotenv.config({ path: './src/.env.local' });
+// Environment variables will now be loaded by Next.js automatically
+// from .env.local in the project root.
+// The explicit dotenv.config call has been removed.
 
 const nextConfig: NextConfig = {
   output: 'export', // Enable static HTML export
-  // IMPORTANT: Replace 'your-repo-name' with your actual GitHub repository name
-  // If your site is at https://<username>.github.io/your-repo-name/
-  // If your site is at https://<username>.github.io/ (i.e., a user/org page using the <username>.github.io repo),
-  // then you can remove basePath or set it to an empty string.
   basePath: process.env.NODE_ENV === 'production' ? '/VEABGoa' : '',
   typescript: {
     ignoreBuildErrors: true,

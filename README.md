@@ -33,24 +33,26 @@ cd your-repo-name
 
 ### 2. Set Up Environment Variables
 
-The application requires Firebase credentials to connect to Firestore for dynamic content (news, events, projects, contact form submissions) and Firebase Authentication. It also uses an environment variable for the `basePath` in certain contexts.
+The application requires Firebase credentials to connect to Firestore and Firebase Authentication. It also uses an environment variable for the `basePath` in certain contexts.
 
+*   **IMPORTANT:** Environment variables are managed in a `.env.local` file located in the **root of your project directory**.
 *   Copy the example environment file:
     ```bash
-    cp src/.env.local.example src/.env.local
+    cp .env.local.example .env.local
     ```
-*   Open `src/.env.local` and replace the placeholder values with your **actual Firebase project credentials**. You can find these in your Firebase project settings.
+*   Open `.env.local` (in the project root) and replace the placeholder values with your **actual Firebase project credentials**. You can find these in your Firebase project settings.
     For local development, you typically **do not** need to set `NEXT_PUBLIC_BASE_PATH` unless you are specifically testing production-like `basePath` behavior. `next.config.ts` handles `basePath` for local development automatically (setting it to `''`). If you *do* set it for local testing, make sure it matches your intended production `basePath` (e.g., `/your-repo-name`).
 
+    Your `.env.local` file should look like this (replace placeholders):
     ```ini
     # Firebase Configuration - Replace with your actual project details
-    NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_API_KEY_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_AUTH_DOMAIN_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_STORAGE_BUCKET_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_MESSAGING_SENDER_ID_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID_FROM_ENV_LOCAL"
-    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_MEASUREMENT_ID_FROM_ENV_LOCAL" # Optional
+    NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_API_KEY_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_AUTH_DOMAIN_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_STORAGE_BUCKET_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_MESSAGING_SENDER_ID_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID_FROM_FIREBASE"
+    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_MEASUREMENT_ID_FROM_FIREBASE" # Optional
 
     # Base Path for assets if needed during local development to simulate production
     # Typically, leave this commented out or empty for standard local development.
@@ -58,8 +60,8 @@ The application requires Firebase credentials to connect to Firestore for dynami
     # NEXT_PUBLIC_BASE_PATH=""
     ```
 
-    **Note:** `src/.env.local` is gitignored and should never be committed to the repository.
-    **VERY IMPORTANT:** After creating or modifying `src/.env.local`, you **MUST RESTART** your Next.js development server (e.g., stop and re-run `npm run dev` or `yarn dev`) for the changes to take effect.
+    **Note:** `.env.local` is gitignored and should never be committed to the repository.
+    **VERY IMPORTANT:** After creating or modifying `.env.local`, you **MUST RESTART** your Next.js development server (e.g., stop and re-run `npm run dev` or `yarn dev`) for the changes to take effect. Next.js only loads environment variables on server start.
 
 ### 3. Install Dependencies
 
@@ -119,7 +121,7 @@ npm run dev
 yarn dev
 ```
 
-The application will reload automatically when you make changes to most code files. However, **if you change `src/.env.local`, you must restart the server.**
+The application will reload automatically when you make changes to most code files. However, **if you change `.env.local`, you must restart the server.**
 
 ### 6. Running the Genkit Development Server (If using Genkit features)
 
@@ -150,15 +152,15 @@ This command generates static HTML/CSS/JS files in the `out` directory, suitable
 This project is configured for deployment to GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
 
 *   **Repository Name:** Ensure `basePath` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa`.
-*   **GitHub Secrets:** Configure the Firebase environment variables (from `src/.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
+*   **GitHub Secrets:** Configure the Firebase environment variables (matching those in `.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
 *   **Limitations:**
     *   Firebase Authentication will work client-side (users can log in).
-    *   Server Actions (used for the contact form, admin article submission, and admin project submission) **will not fully work** on GitHub Pages. The site will simulate success for these forms after login, but no data will be saved to Firestore from the static site. The admin panel access control itself (login) is client-side and will function.
+    *   The contact form, admin article submission, and admin project submission will attempt client-side writes to Firestore. These rely on Firestore security rules and client-side Firebase initialization. If Firebase is not correctly configured with valid credentials accessible to the client build, these operations may fail silently or show simulated success.
     *   News, events, and projects will be static content generated at build time (unless fetched client-side, which is the current setup for the "Coming Soon" pages).
 
 ### Other Hosting (e.g., Vercel, Netlify, Firebase Hosting)
 
-For full functionality, including Server Actions and proper backend database interactions, deploy to a platform that supports Next.js Node.js runtime.
+For full functionality, including robust backend database interactions if client-side writes are not desired, deploy to a platform that supports Next.js Node.js runtime.
 *   You'll need to configure environment variables on your chosen hosting platform.
 *   `next.config.ts` may need adjustments (e.g., removing `output: 'export'`, `basePath` if not needed for the hosting provider).
 
@@ -168,7 +170,7 @@ Admin interfaces are available at:
 *   `/admin/login`: To log in to the admin panel.
 *   `/admin/add-article`: To add new news articles (requires login).
 *   `/admin/add-project`: To add new projects (requires login).
-*   **Functionality on GitHub Pages:** Admin users can log in. The "Publish" buttons on admin forms will be enabled after login but will simulate success without actual database writes due to static site limitations.
+*   **Functionality on GitHub Pages:** Admin users can log in. The "Publish" buttons on admin forms will be enabled after login and will attempt client-side database writes.
 
 ## Contributing
 
