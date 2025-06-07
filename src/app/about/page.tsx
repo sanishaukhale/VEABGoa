@@ -122,11 +122,13 @@ export default function AboutPage() {
 
   const handleFlip = (name: string) => {
     setFlippedCards(prevFlippedCards => {
-      const isClickedCardFlipped = prevFlippedCards[name];
-      const newFlippedState: Record<string, boolean> = {}; 
-      if (!isClickedCardFlipped) {
-        newFlippedState[name] = true;
+      // If the clicked card is already flipped, unflip it (close it)
+      if (prevFlippedCards[name]) {
+        return {}; // Close all cards
       }
+      // Otherwise, flip the clicked card and unflip all others
+      const newFlippedState: Record<string, boolean> = {};
+      newFlippedState[name] = true;
       return newFlippedState;
     });
   };
@@ -291,7 +293,7 @@ export default function AboutPage() {
         </div>
         <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {teamMembers.map((member) => (
-            <div key={member.name} className="flip-card h-88" onClick={() => handleFlip(member.name)}>
+            <div key={member.name} className="flip-card h-96" onClick={() => handleFlip(member.name)}>
               <div className={`flip-card-inner ${flippedCards[member.name] ? 'is-flipped' : ''}`}>
                 <div className="flip-card-front">
                   <Card className="w-full h-full flex flex-col text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
