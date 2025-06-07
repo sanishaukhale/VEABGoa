@@ -121,7 +121,20 @@ export default function AboutPage() {
   ];
 
   const handleFlip = (name: string) => {
-    setFlippedCards(prev => ({ ...prev, [name]: !prev[name] }));
+    setFlippedCards(prevFlippedCards => {
+      const isClickedCardFlipped = prevFlippedCards[name];
+      // Create a new state where all cards are initially unflipped
+      const newFlippedState: Record<string, boolean> = {};
+      
+      // If the clicked card was not already flipped, then we flip it.
+      // This will make it the only flipped card.
+      // If it was already flipped, we leave it unflipped in the new state (effectively closing it).
+      if (!isClickedCardFlipped) {
+        newFlippedState[name] = true;
+      }
+      
+      return newFlippedState;
+    });
   };
 
   return (
@@ -144,17 +157,17 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-lg text-foreground space-y-4">
             <p>
-              Primarily comprising of youth from various walks of life, Vivekanand Environment Awareness Brigade (VEAB) is a symbol of transformation and channelization of the energy in the youth in the right direction. Founded in 2010 by a group of passionate environmentalists and local community leaders, VEAB Goa emerged from a shared concern for the rapidly changing Goan landscape. Witnessing the pressures of unplanned development, resource depletion, and climate change on our pristine ecosystems, we felt an urgent call to action.
+              Primarily comprising of youth from various walks of life, Vivekanand Environment Awareness Brigade (VEAB) is a symbol of transformation and channelization of the energy in the youth in the right direction. Founded in 2001 by a group of passionate environmentalists and local community leaders, VEAB Goa emerged from a shared concern for the rapidly changing Goan landscape. Witnessing the pressures of unplanned development, resource depletion, and climate change on our pristine ecosystems, we felt an urgent call to action.
             </p>
             <p>
-              Over the past decade, VEAB Goa has grown from a small volunteer group into a recognized organization at the forefront of environmental conservation in the region. Our journey has been marked by successful grassroots campaigns, impactful research projects, and a growing network of dedicated volunteers and partners. VEAB has been recognized as a key Environment NGO by the Dr. Jane Goodall Institute and was awarded the prestigious state “Paryavaran Rakshak Puraskar” in the year 2017. We believe in a collaborative approach, working closely with local communities, government bodies, and academic institutions to create lasting positive change.
+              Over the past two decades, VEAB Goa has grown from a small volunteer group into a recognized organization at the forefront of environmental conservation in the region. Our journey has been marked by successful grassroots campaigns, impactful research projects, and a growing network of dedicated volunteers and partners. VEAB has been recognized as a key Environment NGO by the Dr. Jane Goodall Institute and was awarded the prestigious state “Paryavaran Rakshak Puraskar” in the year 2017. We believe in a collaborative approach, working closely with local communities, government bodies, and academic institutions to create lasting positive change.
             </p>
              <Image
-                src={basePath + "/veab-our-story.jpg"}
+                src={`${basePath}/veab-our-story.jpg`}
                 alt="VEAB Goa team collaborating on environmental projects"
                 width={800}
                 height={400}
-                className="rounded-lg mt-6"
+                className="rounded-lg mt-6 mx-auto"
                 data-ai-hint="team collaboration"
              />
           </CardContent>
@@ -314,3 +327,6 @@ export default function AboutPage() {
     </div>
   );
 }
+
+
+    
