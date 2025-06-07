@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon, ShieldCheck, ListChecks, Eye } from "lucide-react";
+import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon, ShieldCheck, ListChecks, Eye, Award, Users2 } from "lucide-react";
 import { useState } from "react";
 
 interface SocialLink {
@@ -123,20 +123,24 @@ export default function AboutPage() {
   const handleFlip = (name: string) => {
     setFlippedCards(prevFlippedCards => {
       const isClickedCardFlipped = prevFlippedCards[name];
-      const newFlippedState: Record<string, boolean> = {};
+      const newFlippedState: Record<string, boolean> = {}; // Create a new object
+      // If the clicked card wasn't flipped, set it to flipped
+      // Otherwise (if it was already flipped), it will be closed (effectively no card is marked as true)
       if (!isClickedCardFlipped) {
         newFlippedState[name] = true;
       }
+      // If isClickedCardFlipped is true, newFlippedState remains empty, thus closing the card.
       return newFlippedState;
     });
   };
+
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <header className="text-center mb-12">
         <Leaf size={64} className="mx-auto text-primary mb-4" />
         <h1 className="text-4xl md:text-5xl font-bold text-primary">About VEAB Goa</h1>
-        <p className="text-lg sm:text-xl text-muted-foreground mt-2 max-w-3xl mx-auto">
+        <p className="text-base sm:text-xl text-muted-foreground mt-2 max-w-3xl mx-auto">
           Vivekanand Environment Awareness Brigade (VEAB) is a non-profit organization based at Keri, Sattari-Goa, dedicated towards environment education and wildlife conservation. Registered on October 04, 2001 under the Societies Registration Act, 1860, VEAB has gained repute as a leading force in the field of environment conservation.
         </p>
       </header>
@@ -178,16 +182,16 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="text-base sm:text-lg text-foreground space-y-4">
             <p>
-              Through a comprehensive set of activities, VEAB introduces people to the amazing World of nature and empowers them to be environmental defenders. The organisation routinely conducts nature orientation camps for schools and the general public. Kids and adults are taken to the forests in Goa where they spend time learning about wildlife, its importance and how they can help protect it. Nature trails and birding trips are held regularly and participants visit gardens and nearby forests where they guided by resource people and learn how to observe wild animals.
+              Through a comprehensive set of activities, VEAB introduces people to the amazing World of nature and empowers them to be environmental defenders. The organisation routinely conducts nature orientation camps for schools and the general public. Kids and adults are taken to the forests in Goa where they spend time learning about wildlife, its importance and how they can help protect it. Nature trails and birding trips are held regularly and participants visit gardens and nearby forests where they guided by resource people and learn how to observe wild animals. A key tool used by VEAB to spread their message is street play. One of VEAB’s major programme is wildlife rescue.
             </p>
             <p>
-              A key tool used by VEAB to spread their message is street play. One of VEAB’s major programme is wildlife rescue. Adventure activities like rock climbing, trekking are also organized for the public. Cycle Rallies are also organized for awareness of issues demanding urgent attention.
+              Adventure activities like rock climbing, trekking are also organized for the public. Cycle Rallies are also organized for awareness of issues demanding urgent attention.
             </p>
             <p>
-              It has been realized over the years that wildlife conservation cannot be a reality without participation of the people. Our aim for the future therefore, is to implement action based wildlife conservation projects in Goa and surrounding areas with the people's participation.
+              It has been realized over the years that wildlife conservation cannot be a reality without participation of the people. Our aim for the future therefore, is to implement action based wildlife conservation projects in Goa and surrounding areas with the people&apos;s participation.
             </p>
             <p>
-              Our Mission is to protect and improve Goa's natural environment including forests, lakes, rivers and wildlife, to aid and spread awareness and knowledge on principles, practices, techniques and methods regarding wildlife protection, eco-development, pollution control, social forestry and natural resource conservation; to assist the state forest department or any other statutory body or authority operating in the field of conservation; to put an end to hunting; protecting endangered species; to organize rock-climbing and trekking with emphasis on forest exploration, nature-study, wilderness survival, rescue operations and life-saving; organizing nature-study, nature awareness camps and scientific explorations and adventures to camp sites, etc.
+              Our Mission is to protect and improve Goa&apos;s natural environment including forests, lakes, rivers and wildlife, to aid and spread awareness and knowledge on principles, practices, techniques and methods regarding wildlife protection, eco-development, pollution control, social forestry and natural resource conservation; to assist the state forest department or any other statutory body or authority operating in the field of conservation; to put an end to hunting; protecting endangered species; to organize rock-climbing and trekking with emphasis on forest exploration, nature-study, wilderness survival, rescue operations and life-saving; organizing nature-study, nature awareness camps and scientific explorations and adventures to camp sites, etc.
             </p>
           </CardContent>
         </Card>
@@ -247,6 +251,41 @@ export default function AboutPage() {
           </CardContent>
         </Card>
       </section>
+      
+      <section className="mb-12 md:mb-16">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <div className="flex items-center mb-2">
+              <Users2 size={32} className="text-accent mr-3" />
+              <CardTitle className="text-2xl sm:text-3xl text-accent">Our Foundation</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="text-base sm:text-lg text-foreground space-y-4">
+              <p>Primarily comprising of youth from various walks of life, Vivekanand Environment Awareness Brigade (VEAB) is a symbol of transformation and channelization of the energy in the youth in the right direction.</p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mb-12 md:mb-16">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <div className="flex items-center mb-2">
+              <Award size={32} className="text-accent mr-3" />
+              <CardTitle className="text-2xl sm:text-3xl text-accent">Recognitions & Awards</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="text-base sm:text-lg text-foreground space-y-3">
+              <p className="flex items-start">
+                <CheckCircle size={20} className="text-primary mr-2 mt-1 flex-shrink-0" />
+                <span>Recognized as a key Environment NGO by the Dr. Jane Goodall Institute.</span>
+              </p>
+              <p className="flex items-start">
+                <CheckCircle size={20} className="text-primary mr-2 mt-1 flex-shrink-0" />
+                <span>Awarded the prestigious state “Paryavaran Rakshak Puraskar” in the year 2017.</span>
+              </p>
+          </CardContent>
+        </Card>
+      </section>
 
       <section>
         <div className="text-center mb-10">
@@ -266,7 +305,7 @@ export default function AboutPage() {
                         width={150}
                         height={150}
                         className="rounded-full mx-auto mb-4 border-4 border-primary/40"
-                        style={{ width: '120px', height: '120px' }} // Slightly smaller image for mobile
+                        style={{ width: '120px', height: '120px' }}
                         {...(member.dataAiHint && !member.imageUrl.startsWith('https://') && { 'data-ai-hint': member.dataAiHint })}
                       />
                       <h3 className="text-lg sm:text-xl font-semibold text-foreground">{member.name}</h3>
@@ -302,7 +341,7 @@ export default function AboutPage() {
                                 className="text-primary hover:text-primary/70"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <social.icon size={18} smSize={20} aria-label={social.platform} />
+                                <social.icon size={18} aria-label={social.platform} />
                               </a>
                             ))}
                           </div>
@@ -322,5 +361,3 @@ export default function AboutPage() {
     </div>
   );
 }
-
-    
