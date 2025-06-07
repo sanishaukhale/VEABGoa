@@ -123,13 +123,10 @@ export default function AboutPage() {
   const handleFlip = (name: string) => {
     setFlippedCards(prevFlippedCards => {
       const isClickedCardFlipped = prevFlippedCards[name];
-      const newFlippedState: Record<string, boolean> = {}; // Create a new object
-      // If the clicked card wasn't flipped, set it to flipped
-      // Otherwise (if it was already flipped), it will be closed (effectively no card is marked as true)
+      const newFlippedState: Record<string, boolean> = {}; 
       if (!isClickedCardFlipped) {
         newFlippedState[name] = true;
       }
-      // If isClickedCardFlipped is true, newFlippedState remains empty, thus closing the card.
       return newFlippedState;
     });
   };
@@ -302,10 +299,9 @@ export default function AboutPage() {
                       <Image
                         src={member.imageUrl.startsWith('https://') ? member.imageUrl : `${basePath}${member.imageUrl}`}
                         alt={`Portrait of ${member.name}, ${member.role}`}
-                        width={150}
-                        height={150}
-                        className="rounded-full mx-auto mb-4 border-4 border-primary/40"
-                        style={{ width: '120px', height: '120px' }}
+                        width={128}
+                        height={128}
+                        className="rounded-full mx-auto mb-4 border-4 border-primary/40 w-32 h-32 object-cover"
                         {...(member.dataAiHint && !member.imageUrl.startsWith('https://') && { 'data-ai-hint': member.dataAiHint })}
                       />
                       <h3 className="text-lg sm:text-xl font-semibold text-foreground">{member.name}</h3>
@@ -361,3 +357,4 @@ export default function AboutPage() {
     </div>
   );
 }
+
