@@ -88,6 +88,7 @@ yarn install
             *   `platform` (String): "LinkedIn", "Twitter", or "Mail"
             *   `url` (String): Full URL to the social profile or mailto link.
         *   `displayOrder` (Number, optional): e.g., 1, 2, 3 for custom ordering on the page. If not used, ordering will be by name.
+    *   You can use the `node scripts/populateTeamMembers.js` script to add initial dummy data to the `teamMembers` collection (see script comments for setup).
 *   **Firebase Storage:** Create a folder (e.g., `team-images`) for member portraits if using Firebase Storage for those. Ensure the paths in the `imageUrl` field of your `teamMembers` documents match the actual paths in Storage.
 *   **Security Rules:**
     *   **Firestore Rules:**
@@ -118,6 +119,15 @@ yarn install
         }
         ```
     **Important:** Secure these rules properly for production.
+*   **Firestore Indexes:**
+    *   Firestore automatically creates single-field indexes. However, for more complex queries (e.g., ordering by multiple fields, or combining range filters with ordering), you'll need to create composite indexes.
+    *   If you see an error in your browser console or Firebase logs mentioning "The query requires an index...", Firebase usually provides a direct link to create the missing index.
+    *   For the `teamMembers` collection, if you sort by `displayOrder` (ascending) and then by `name` (ascending) (as done in the admin panel), you will need a composite index.
+        *   **Collection ID:** `teamMembers`
+        *   **Fields to index:**
+            1.  `displayOrder` (Ascending)
+            2.  `name` (Ascending)
+    *   You can create this index in your Firebase Console under Firestore Database > Indexes.
 
 ### 5. Running the Development Server
 
@@ -179,7 +189,7 @@ Admin interfaces are available at:
 *   `/admin/login`: To log in to the admin panel.
 *   `/admin/add-article`: To add new news articles (requires login).
 *   `/admin/add-project`: To add new projects (requires login).
-*   Other admin management pages for editing are currently placeholders.
+*   `/admin/manage-team`: To manage team member details (requires login).
 
 ## Contributing
 
@@ -188,3 +198,4 @@ Contributions are welcome! Please follow standard fork and pull request procedur
 ---
 
 This `README.md` will be updated as the project evolves.
+
