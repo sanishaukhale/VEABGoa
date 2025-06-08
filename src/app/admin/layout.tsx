@@ -19,8 +19,16 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
   useEffect(() => {
-    if (!loading && !user && pathname !== '/admin/login') {
+    if (loading) { // Wait for auth state to resolve before attempting redirects
+      return;
+    }
+
+    if (!user && pathname !== '/admin/login') {
+      // If not logged in and not on the login page, redirect to login
       router.replace('/admin/login');
+    } else if (user && pathname === '/admin/login') {
+      // If logged in and on the login page, redirect to a default admin page
+      router.replace('/admin/add-article'); 
     }
   }, [user, loading, router, pathname]);
 
@@ -33,17 +41,22 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If user is not logged in and trying to access an admin page (not /admin/login)
+  // useEffect will redirect, show a "Redirecting to login..." message during this process.
   if (!user && pathname !== '/admin/login') {
     return (
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
-            <p className="text-lg">Redirecting to login...</p>
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-lg">Redirecting to login...</p>
         </div>
     );
   }
   
+  // Handles rendering for the /admin/login path or the main admin shell
   if (pathname === '/admin/login') {
     if (user) {
-      router.replace('/admin/add-article'); 
+      // User is logged in and on the login page, useEffect will redirect.
+      // Show a "Redirecting to Admin Dashboard..." message.
       return (
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -51,9 +64,14 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       );
     }
+    // User is not logged in and on the login page, render the children (login form).
     return <>{children}</>; 
   }
 
+  // If we reach here, it means:
+  // 1. user is logged in (because !user cases are handled above or by useEffect)
+  // 2. pathname is not '/admin/login'
+  // So, render the full admin shell.
   return (
     <div className="flex min-h-screen bg-muted/40">
       <aside className="w-64 bg-card p-6 shadow-lg flex flex-col">
