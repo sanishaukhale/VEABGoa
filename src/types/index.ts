@@ -37,3 +37,21 @@ export interface Article {
   createdAt?: Timestamp; // Added for sorting
 }
 
+// Firestore-friendly structure for social links
+export interface SocialLinkFirestore {
+  platform: string; // e.g., "LinkedIn", "Twitter", "Mail"
+  url: string;
+}
+
+// Updated TeamMember interface for Firestore data
+export interface TeamMember {
+  id: string; // Document ID from Firestore
+  name: string;
+  role: string;
+  imageUrl: string; // Path in Firebase Storage, e.g., "team-images/name.png"
+  dataAiHint?: string;
+  intro: string;
+  profession: string;
+  socials?: SocialLinkFirestore[];
+  displayOrder?: number; // Optional: for custom sorting if needed
+}

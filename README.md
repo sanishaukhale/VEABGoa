@@ -75,8 +75,20 @@ yarn install
     *   Enable the "Email/Password" provider.
     *   Create at least one admin user manually in the "Users" tab.
 *   **Enable Firebase Storage:** In your Firebase project, enable Firebase Storage and set up security rules (see below).
-*   **Firestore Collections:** Create: `articles`, `events`, `projects`, `contactMessages`.
-*   **Firebase Storage:** Create a folder (e.g., `team-images`) for member portraits if using Firebase Storage for those.
+*   **Firestore Collections:**
+    *   Create: `articles`, `events`, `projects`, `contactMessages`.
+    *   Create: `teamMembers`. For each document in `teamMembers`, use the following structure:
+        *   `name` (String): e.g., "Chandrakant Shinde"
+        *   `role` (String): e.g., "President"
+        *   `imageUrl` (String): Path in Firebase Storage, e.g., "team-images/chandrakant_shinde.png"
+        *   `dataAiHint` (String, optional): e.g., "person smiling"
+        *   `intro` (String): A short introduction or bio.
+        *   `profession` (String): e.g., "Environmental Leader"
+        *   `socials` (Array of Objects): Each object should have:
+            *   `platform` (String): "LinkedIn", "Twitter", or "Mail"
+            *   `url` (String): Full URL to the social profile or mailto link.
+        *   `displayOrder` (Number, optional): e.g., 1, 2, 3 for custom ordering on the page. If not used, ordering will be by name.
+*   **Firebase Storage:** Create a folder (e.g., `team-images`) for member portraits if using Firebase Storage for those. Ensure the paths in the `imageUrl` field of your `teamMembers` documents match the actual paths in Storage.
 *   **Security Rules:**
     *   **Firestore Rules:**
         ```javascript
@@ -87,6 +99,7 @@ yarn install
             match /events/{eventId} { allow read: if true; /* allow write: if request.auth != null; */ }
             match /projects/{projectId} { allow read: if true; allow write: if request.auth != null; }
             match /contactMessages/{messageId} { allow create: if true; allow read, update, delete: if request.auth != null;}
+            match /teamMembers/{memberId} { allow read: if true; allow write: if request.auth != null; } // Added rule for teamMembers
           }
         }
         ```
@@ -153,7 +166,7 @@ Firebase App Hosting builds your Next.js application using buildpacks and deploy
     ```
 3.  **CI/CD (Optional but Recommended):**
     *   You can connect your GitHub repository directly to Firebase App Hosting in the Firebase console for automatic deployments on push to a branch.
-    *   Alternatively, you can set up a custom GitHub Actions workflow to run `firebase deploy --only apphosting` using a service account.
+    *   The GitHub Actions workflow for GitHub Pages deployment (`.github/workflows/deploy.yml`) has been disabled as Firebase App Hosting is the preferred deployment method.
 
 **Environment Variables for Firebase App Hosting:**
 *   App Hosting allows you to set environment variables directly in the Firebase Console (App Hosting > Your Backend > Settings/Configuration) or via the `apphosting.yaml` file for some configurations.

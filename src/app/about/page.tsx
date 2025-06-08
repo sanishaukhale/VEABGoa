@@ -4,119 +4,76 @@
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon, ShieldCheck, ListChecks, Eye, Award, Users2 } from "lucide-react";
+import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon, ShieldCheck, ListChecks, Eye, Award, Users2, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { storage } from '@/lib/firebase';
+import { storage, firestore } from '@/lib/firebase';
 import { ref as storageRef, getDownloadURL } from 'firebase/storage';
-
-interface SocialLink {
-  platform: string;
-  url: string;
-  icon: React.ElementType;
-}
-
-interface TeamMember {
-  name: string;
-  role: string;
-  imageUrl: string; 
-  dataAiHint?: string;
-  intro: string;
-  profession: string;
-  socials?: SocialLink[];
-}
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import type { TeamMember as TeamMemberType, SocialLinkFirestore } from '@/types';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
+const iconMap: Record<string, React.ElementType> = {
+  LinkedIn: Linkedin,
+  Twitter: Twitter,
+  Mail: MailIcon,
+  // Add other platforms here if needed, e.g., Instagram: InstagramIcon
+};
+
 export default function AboutPage() {
+  const [teamMembersData, setTeamMembersData] = useState<TeamMemberType[]>([]);
+  const [isLoadingTeamData, setIsLoadingTeamData] = useState(true);
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
   const [resolvedImageUrls, setResolvedImageUrls] = useState<Record<string, string>>({});
   const [isLoadingImages, setIsLoadingImages] = useState(true);
 
-  const teamMembers: TeamMember[] = [
-    {
-      name: "Chandrakant Shinde",
-      role: "President",
-      imageUrl: "team-images/chandrakant_shinde.png", 
-      intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
-      profession: "Environmental Leader",
-      socials: [
-        { platform: "LinkedIn", url: "#", icon: Linkedin },
-        { platform: "Mail", url: "mailto:president@example.com", icon: MailIcon },
-      ],
-    },
-    {
-      name: "Sangam Patil",
-      role: "Vice President",
-      imageUrl: "team-images/sangam_patil.jpg", 
-      dataAiHint: "person smiling",
-      intro: "Supporting strategic initiatives and fostering partnerships for sustainable development in the region.",
-      profession: "Conservation Strategist",
-      socials: [{ platform: "Twitter", url: "#", icon: Twitter }],
-    },
-    {
-      name: "Deepak Gawas",
-      role: "Secretary",
-      imageUrl: "team-images/deepak_gawas.png", 
-      dataAiHint: "professional headshot",
-      intro: "Overseeing administrative operations and ensuring smooth execution of VEAB's projects and programs.",
-      profession: "Operations Manager",
-      socials: [{ platform: "Mail", url: "mailto:secretary@example.com", icon: MailIcon }],
-    },
-    {
-      name: "Ramesh Zarmekar",
-      role: "Treasurer",
-      imageUrl: "team-images/ramesh_zarmekar.png", 
-      dataAiHint: "person portrait",
-      intro: "Managing financial resources with transparency to support VEAB's mission and long-term sustainability.",
-      profession: "Financial Advisor",
-    },
-    {
-      name: "Sanket Naik",
-      role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", 
-      dataAiHint: "team member",
-      intro: "Contributing to ecological research and on-ground conservation activities with expertise.",
-      profession: "Field Biologist",
-    },
-    {
-      name: "Subodh Naik",
-      role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", 
-      dataAiHint: "professional photo",
-      intro: "Actively involved in community outreach and environmental awareness campaigns across Goa.",
-      profession: "Community Organizer",
-    },
-    {
-      name: "Vitthal Shelke",
-      role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", 
-      dataAiHint: "person smiling",
-      intro: "Focused on wildlife rescue operations and habitat restoration projects within the state.",
-      profession: "Wildlife Rehabilitator",
-    },
-    {
-      name: "Suryakant Gaonkar",
-      role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", 
-      dataAiHint: "professional headshot",
-      intro: "Dedicated to promoting sustainable agricultural practices and local biodiversity.",
-      profession: "Agroecologist",
-    },
-    {
-      name: "Gajanan Shetye",
-      role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", 
-      dataAiHint: "team member",
-      intro: "Advocating for policy changes and legal frameworks for better environmental protection.",
-      profession: "Environmental Advocate",
-    },
-  ];
-
+  // Effect to fetch team members from Firestore
   useEffect(() => {
+    const fetchTeamMembers = async () => {
+      if (!firestore) {
+        console.error("Firestore not available for fetching team members.");
+        setIsLoadingTeamData(false);
+        return;
+      }
+      setIsLoadingTeamData(true);
+      try {
+        const membersCollectionRef = collection(firestore, 'teamMembers');
+        // Order by 'displayOrder' if you add this field, otherwise 'name'
+        const q = query(membersCollectionRef, orderBy('displayOrder', 'asc')); // Defaulting to 'displayOrder', fallback to 'name' if it causes issues without the field
+        // const q = query(membersCollectionRef, orderBy('name', 'asc')); // Alternative: order by name
+        
+        const querySnapshot = await getDocs(q);
+        const members = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        } as TeamMemberType));
+        setTeamMembersData(members);
+      } catch (error) {
+        console.error("Error fetching team members from Firestore:", error);
+        // Consider setting an error state to display a message to the user
+      } finally {
+        setIsLoadingTeamData(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, []);
+
+  // Effect to fetch image URLs from Firebase Storage - depends on teamMembersData
+  useEffect(() => {
+    if (teamMembersData.length === 0 && !isLoadingTeamData) {
+      // If there's no team data (and not because it's still loading), don't try to fetch images.
+      setIsLoadingImages(false);
+      setResolvedImageUrls({});
+      return;
+    }
+    if (teamMembersData.length === 0) return;
+
+
     const fetchImageUrls = async () => {
       setIsLoadingImages(true);
       const urls: Record<string, string> = {};
-      for (const member of teamMembers) {
+      for (const member of teamMembersData) {
         if (member.imageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('/')) {
           if (storage) {
             try {
@@ -125,15 +82,15 @@ export default function AboutPage() {
               urls[member.name] = downloadUrl;
             } catch (error) {
               console.error(`Failed to get download URL for ${member.name} (${member.imageUrl}):`, error);
-              urls[member.name] = `https://placehold.co/128x128.png?text=Img+NF`; // Updated placeholder
+              urls[member.name] = `https://placehold.co/128x128.png?text=Img+NF`;
             }
           } else {
             console.warn("Firebase Storage not available for member:", member.name);
-            urls[member.name] = `https://placehold.co/128x128.png?text=No+Storage`; 
+            urls[member.name] = `https://placehold.co/128x128.png?text=No+Storage`;
           }
         } else {
-          urls[member.name] = member.imageUrl.startsWith('/') 
-            ? `${basePath}${member.imageUrl}` 
+          urls[member.name] = member.imageUrl.startsWith('/')
+            ? `${basePath}${member.imageUrl}`
             : (member.imageUrl || `https://placehold.co/128x128.png?text=No+Image`);
         }
       }
@@ -143,7 +100,7 @@ export default function AboutPage() {
 
     fetchImageUrls();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [teamMembersData]);
 
 
   const valuesList = [
@@ -162,7 +119,7 @@ export default function AboutPage() {
   const handleFlip = (name: string) => {
     setFlippedCards(prevFlippedCards => {
       if (prevFlippedCards[name]) {
-        return {}; 
+        return {};
       }
       const newFlippedState: Record<string, boolean> = {};
       newFlippedState[name] = true;
@@ -170,6 +127,15 @@ export default function AboutPage() {
     });
   };
 
+  if (isLoadingTeamData) {
+    return (
+      <div className="container mx-auto px-4 py-12 md:py-16 text-center min-h-[60vh] flex flex-col justify-center items-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto mb-6" />
+        <p className="mt-4 text-xl text-muted-foreground">Loading Team Information...</p>
+        <p className="text-sm text-muted-foreground">Please wait a moment.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
@@ -328,9 +294,14 @@ export default function AboutPage() {
           <Users size={48} className="mx-auto text-primary mb-3" />
           <h2 className="text-3xl md:text-4xl font-semibold text-primary">Meet Our Team</h2>
         </div>
+        {(teamMembersData.length === 0 && !isLoadingTeamData) && (
+          <p className="text-center text-lg text-muted-foreground">
+            Team member information is currently unavailable. Please check back later.
+          </p>
+        )}
         <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {teamMembers.map((member) => (
-            <div key={member.name} className="flip-card h-96" onClick={() => handleFlip(member.name)}>
+          {teamMembersData.map((member) => (
+            <div key={member.id} className="flip-card h-96" onClick={() => handleFlip(member.name)}>
               <div className={`flip-card-inner ${flippedCards[member.name] ? 'is-flipped' : ''}`}>
                 <div className="flip-card-front">
                   <Card className="w-full h-full flex flex-col text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -372,18 +343,22 @@ export default function AboutPage() {
                         <div>
                           <h4 className="font-semibold text-accent/90 text-xs sm:text-sm">Connect</h4>
                           <div className="flex space-x-2 sm:space-x-3 mt-1">
-                            {member.socials.map(social => (
-                              <a
-                                key={social.platform}
-                                href={social.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:text-primary/70"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <social.icon size={18} aria-label={social.platform} />
-                              </a>
-                            ))}
+                            {member.socials.map(social => {
+                              const SocialIconComponent = iconMap[social.platform];
+                              return SocialIconComponent ? (
+                                <a
+                                  key={social.platform}
+                                  href={social.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:text-primary/70"
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label={social.platform}
+                                >
+                                  <SocialIconComponent size={18} />
+                                </a>
+                              ) : null;
+                            })}
                           </div>
                         </div>
                       )}
@@ -394,11 +369,12 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
-        <p className="text-center mt-8 text-base sm:text-lg text-foreground">
-            And many more dedicated volunteers and supporters who make our work possible!
-        </p>
+        {teamMembersData.length > 0 && (
+          <p className="text-center mt-8 text-base sm:text-lg text-foreground">
+              And many more dedicated volunteers and supporters who make our work possible!
+          </p>
+        )}
       </section>
     </div>
   );
 }
-
