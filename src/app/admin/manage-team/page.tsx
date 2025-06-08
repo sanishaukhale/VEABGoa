@@ -2,18 +2,23 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Users, Edit3, Trash2 } from 'lucide-react';
-import { firestore } from '@/lib/firebase';
+import { Loader2, PlusCircle, Users, Edit3, Trash2, ImageOff } from 'lucide-react';
+import { firestore, storage } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { ref as storageRef, getDownloadURL, type StorageError } from 'firebase/storage';
 import type { TeamMember } from '@/types';
 import TeamMemberForm from '@/components/admin/team/TeamMemberForm';
 import type { TeamMemberFormValues } from '@/lib/schemas/teamMemberSchema';
 import { saveTeamMember, deleteTeamMember } from './actions';
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export default function ManageTeamPage() {
   const { toast } = useToast();
@@ -23,6 +28,8 @@ export default function ManageTeamPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
+  const [resolvedListImageUrls, setResolvedListImageUrls] = useState<Record<string, string>>({});
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
 
 
   const fetchTeamMembers = useCallback(async () => {
@@ -53,6 +60,49 @@ export default function ManageTeamPage() {
     fetchTeamMembers();
   }, [fetchTeamMembers]);
 
+  useEffect(() => {
+    if (teamMembers.length === 0 && !isLoading) {
+        setIsLoadingImages(false);
+        setResolvedListImageUrls({});
+        return;
+    }
+    if (teamMembers.length === 0) return;
+
+    const fetchImageUrls = async () => {
+        setIsLoadingImages(true);
+        const urls: Record<string, string> = {};
+        for (const member of teamMembers) {
+            if (member.imageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://') && !member.imageUrl.startsWith('/')) {
+                if (storage) {
+                    try {
+                        const imageSPath = member.imageUrl;
+                        const sRef = storageRef(storage, imageSPath);
+                        const downloadUrl = await getDownloadURL(sRef);
+                        urls[member.id] = downloadUrl;
+                    } catch (error) {
+                        const firebaseError = error as StorageError;
+                        console.error(`Failed to get download URL for ${member.name} (${member.imageUrl}):`, firebaseError.code, firebaseError.message);
+                        urls[member.id] = 'error'; // Special marker for error
+                    }
+                } else {
+                    console.warn("Firebase Storage not available for member:", member.name);
+                    urls[member.id] = 'error';
+                }
+            } else if (member.imageUrl) { // Already a full URL or local placeholder path
+                urls[member.id] = member.imageUrl.startsWith('/') ? `${basePath}${member.imageUrl}` : member.imageUrl;
+            } else { // No image URL provided
+                urls[member.id] = 'placeholder'; // Special marker for placeholder
+            }
+        }
+        setResolvedListImageUrls(urls);
+        setIsLoadingImages(false);
+    };
+
+    fetchImageUrls();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamMembers, isLoading]);
+
+
   const handleAddMember = () => {
     setEditingMember(null);
     setShowFormModal(true);
@@ -70,7 +120,7 @@ export default function ManageTeamPage() {
       toast({ title: "Success", description: result.message });
       setShowFormModal(false);
       setEditingMember(null);
-      fetchTeamMembers(); // Refresh list
+      fetchTeamMembers(); // Refresh list to get new data and trigger image fetching
     } else {
       toast({ title: "Error", description: result.error || "Failed to save team member.", variant: "destructive" });
     }
@@ -87,49 +137,68 @@ export default function ManageTeamPage() {
     } else {
       toast({ title: "Error", description: result.error || "Failed to delete team member.", variant: "destructive" });
     }
-    setMemberToDelete(null); // Close dialog by clearing the state
+    setMemberToDelete(null); 
     setIsSubmitting(false);
   };
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <Card className="shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
+        <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-grow">
             <div className="flex items-center mb-1">
-              <Users size={28} className="text-primary mr-3" />
-              <CardTitle className="text-3xl text-primary">Manage Team Members</CardTitle>
+              <Users size={32} className="text-primary mr-3 hidden sm:block" />
+              <CardTitle className="text-2xl sm:text-3xl text-primary">Manage Team Members</CardTitle>
             </div>
-            <CardDescription>Add, edit, or remove team members.</CardDescription>
+            <CardDescription>Add, edit, or remove team members from the public website.</CardDescription>
           </div>
-          <Button onClick={handleAddMember} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <PlusCircle size={18} className="mr-2" /> Add New Member
+          <Button onClick={handleAddMember} className="bg-primary hover:bg-primary/90 text-primary-foreground flex-shrink-0">
+            <PlusCircle size={18} className="mr-2" /> Add Member
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="ml-3 text-muted-foreground">Loading team members...</p>
             </div>
           ) : teamMembers.length === 0 ? (
             <p className="text-center text-muted-foreground py-10">No team members found. Add one to get started!</p>
           ) : (
             <div className="space-y-4">
               {teamMembers.map((member) => (
-                <Card key={member.id} className="flex items-center justify-between p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div>
-                    <p className="font-semibold text-lg text-foreground">{member.name}</p>
-                    <p className="text-sm text-muted-foreground">{member.role}</p>
-                    {member.displayOrder !== null && member.displayOrder !== undefined && (
-                        <p className="text-xs text-accent mt-1">Display Order: {member.displayOrder}</p>
+                <Card key={member.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-4 flex-grow">
+                    {isLoadingImages && !resolvedListImageUrls[member.id] ? (
+                       <Skeleton className="w-16 h-16 rounded-md" />
+                    ) : resolvedListImageUrls[member.id] && resolvedListImageUrls[member.id] !== 'error' && resolvedListImageUrls[member.id] !== 'placeholder' ? (
+                      <Image
+                        src={resolvedListImageUrls[member.id] as string}
+                        alt={`Image of ${member.name}`}
+                        width={64}
+                        height={64}
+                        className="rounded-md object-cover w-16 h-16 border"
+                        unoptimized={resolvedListImageUrls[member.id]?.includes('placehold.co')}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center border" title="Image not available">
+                        <ImageOff size={32} className="text-muted-foreground" />
+                      </div>
                     )}
+                    <div className="flex-grow">
+                      <p className="font-semibold text-lg text-foreground">{member.name}</p>
+                      <p className="text-sm text-muted-foreground">{member.role}</p>
+                      {member.displayOrder !== null && member.displayOrder !== undefined && (
+                          <p className="text-xs text-accent mt-1">Order: {member.displayOrder}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-x-2">
+                  <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
                     <Button variant="outline" size="sm" onClick={() => handleEditMember(member)} aria-label={`Edit ${member.name}`}>
-                      <Edit3 size={16} className="mr-1" /> Edit
+                      <Edit3 size={16} className="mr-1 sm:mr-2" /> <span className="hidden sm:inline">Edit</span>
                     </Button>
                     <Button variant="destructive" size="sm" onClick={() => setMemberToDelete(member)} aria-label={`Delete ${member.name}`}>
-                        <Trash2 size={16} className="mr-1" /> Delete
+                        <Trash2 size={16} className="mr-1 sm:mr-2" /> <span className="hidden sm:inline">Delete</span>
                     </Button>
                   </div>
                 </Card>
@@ -142,7 +211,7 @@ export default function ManageTeamPage() {
       <Dialog open={showFormModal} onOpenChange={(isOpen) => {
           if (!isOpen) {
             setShowFormModal(false);
-            setEditingMember(null); // Reset editing state when dialog closes
+            setEditingMember(null); 
           } else {
             setShowFormModal(true);
           }
@@ -175,14 +244,14 @@ export default function ManageTeamPage() {
                 <AlertDialogTitle>Are you sure you want to delete {memberToDelete?.name}?</AlertDialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the team member
-                    from the database.
+                    from the database and may affect the public "About Us" page.
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setMemberToDelete(null)} disabled={isSubmitting}>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteConfirm} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : null}
-                    Delete
+                    {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                    Delete Member
                 </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -191,3 +260,5 @@ export default function ManageTeamPage() {
     </div>
   );
 }
+
+    
