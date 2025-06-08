@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, PlusCircle, Trash2, Image as ImageIcon, UploadCloud } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Image as ImageIcon } from "lucide-react";
 import type { TeamMember } from "@/types";
 import { useState, useEffect, type ChangeEvent } from "react";
 import Image from "next/image";
@@ -88,7 +88,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [member?.imageUrl]);
+  }, [member?.imageUrl]); // Add selectedFile to dependency array if preview should clear on file selection
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -112,60 +112,61 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
       setIsUploadingImage(true);
       setUploadProgress(0);
       
-      // Use member id or 'new' for folder structure, and timestamp for uniqueness
       const uniqueFileName = `${member?.id || 'new'}_${Date.now()}_${selectedFile.name.replace(/\s+/g, '_')}`;
       const imagePath = `team-images/${uniqueFileName}`;
       const fileRef = storageRef(storage, imagePath);
 
       const uploadTask = uploadBytesResumable(fileRef, selectedFile);
 
-      await new Promise<void>((resolve, reject) => {
-        uploadTask.on('state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-          },
-          (error) => {
-            console.error("Image upload error:", error);
-            setImageError(`Upload failed: ${error.message}`);
-            setIsUploadingImage(false);
-            setUploadProgress(null);
-            reject(error);
-          },
-          async () => {
-            finalImageUrl = uploadTask.snapshot.ref.fullPath;
-            form.setValue('imageUrl', finalImageUrl); // Update form value with the new path
+      try {
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on('state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(progress);
+            },
+            (error) => {
+              console.error("Image upload error:", error);
+              setImageError(`Upload failed: ${error.message}`);
+              setIsUploadingImage(false);
+              setUploadProgress(null);
+              reject(error); // Reject promise on error
+            },
+            async () => {
+              finalImageUrl = uploadTask.snapshot.ref.fullPath;
+              form.setValue('imageUrl', finalImageUrl); 
 
-            // Attempt to delete old image if it exists and is different
-            if (member?.imageUrl && member.imageUrl !== finalImageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
-              try {
-                await deleteObject(storageRef(storage, member.imageUrl));
-                console.log("Old image deleted:", member.imageUrl);
-              } catch (deleteError) {
-                console.warn("Failed to delete old image:", member.imageUrl, deleteError);
-                // Non-critical, so we don't block the process, but good to log
+              if (member?.imageUrl && member.imageUrl !== finalImageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
+                try {
+                  await deleteObject(storageRef(storage, member.imageUrl));
+                  console.log("Old image deleted:", member.imageUrl);
+                } catch (deleteError) {
+                  console.warn("Failed to delete old image:", member.imageUrl, deleteError);
+                }
               }
+              setIsUploadingImage(false);
+              setUploadProgress(null);
+              resolve(); // Resolve promise on success
             }
-            setIsUploadingImage(false);
-            setUploadProgress(null);
-            resolve();
-          }
-        );
-      });
+          );
+        });
+      } catch (error) {
+        // If upload fails, we might not want to proceed with form submission
+        // or handle it based on requirements (e.g., submit without image)
+        console.error("Image upload promise failed, form submission might be affected.");
+        // Optionally, return here if image upload is critical
+        // return; 
+      }
     }
-    // Update data object with the potentially new imageUrl before submitting
     const dataToSubmit = { ...data, imageUrl: finalImageUrl };
     await onSubmitAction(dataToSubmit);
-    // Reset states on successful form submission (parent will close dialog)
-    // setSelectedFile(null); // Parent re-renders, should reset naturally
-    // setImagePreviewUrl(null); // Parent re-renders
   };
   
   const isOverallSubmitting = isFormSubmitting || isUploadingImage;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmitInternal)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleFormSubmitInternal)} className="space-y-6 py-4">
         <FormField
           control={form.control}
           name="name"
@@ -205,7 +206,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                   width={80}
                   height={80}
                   className="rounded-md object-cover border"
-                  unoptimized={imagePreviewUrl.startsWith('blob:')} // Don't optimize blob URLs
+                  unoptimized={imagePreviewUrl.startsWith('blob:')} 
                 />
               ) : (
                 <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center border">
@@ -213,6 +214,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                 </div>
               )}
               <Input
+                id="file-upload"
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
@@ -222,8 +224,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             </div>
           </FormControl>
           <FormDescription>
-            Upload an image for the team member. This will overwrite the existing image if one is present.
-            The "Image Path in Storage" field below will be updated automatically after a successful upload.
+            Upload an image (PNG, JPG, GIF). This will overwrite the existing image.
           </FormDescription>
           {uploadProgress !== null && (
             <Progress value={uploadProgress} className="w-full mt-2 h-2" />
@@ -238,10 +239,10 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Image Path in Storage</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., team-images/member-photo.png (auto-filled on upload)" {...field} disabled={isOverallSubmitting || isUploadingImage} readOnly={!!selectedFile} />
+                <Input placeholder="e.g., team-images/member-photo.png (auto-filled on upload)" {...field} disabled={isOverallSubmitting || isUploadingImage} readOnly={!!selectedFile || isUploadingImage} />
               </FormControl>
               <FormDescription>
-                Path to the image in Firebase Storage. Automatically updated if you upload an image above. You can manually edit this if you are not uploading a new file.
+                Path to the image in Firebase Storage. Auto-updated on upload.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -298,7 +299,13 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Display Order (Optional)</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="e.g., 1, 2, 3 (lower # appear first)" {...field} onChange={e => field.onChange(parseInt(e.target.value,10))} disabled={isOverallSubmitting} />
+                <Input type="number" placeholder="e.g., 1, 2, 3 (lower # appear first)" {...field} 
+                       value={field.value === undefined || field.value === null ? '' : String(field.value)} // Handle undefined/null for number input
+                       onChange={e => {
+                           const num = parseInt(e.target.value, 10);
+                           field.onChange(isNaN(num) ? undefined : num);
+                       }} 
+                       disabled={isOverallSubmitting} />
               </FormControl>
               <FormDescription>Controls the order on the About Us page. Leave blank if not needed.</FormDescription>
               <FormMessage />
@@ -308,17 +315,17 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
 
         <div>
           <FormLabel>Social Links</FormLabel>
-          <FormDescription>Add social media or contact links.</FormDescription>
+          <FormDescription className="mb-2">Add social media or contact links.</FormDescription>
           {fields.map((item, index) => (
-            <div key={item.id} className="flex items-end gap-2 mt-2 p-3 border rounded-md">
+            <div key={item.id} className="flex items-end gap-2 mt-2 p-3 border rounded-md bg-muted/20">
               <FormField
                 control={form.control}
                 name={`socials.${index}.platform`}
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel className="text-xs">Platform</FormLabel>
+                    <FormLabel className="text-xs font-medium">Platform</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., LinkedIn, Mail, Twitter" {...field} disabled={isOverallSubmitting} />
+                      <Input placeholder="e.g., LinkedIn, Mail" {...field} disabled={isOverallSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -329,7 +336,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                 name={`socials.${index}.url`}
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel className="text-xs">URL</FormLabel>
+                    <FormLabel className="text-xs font-medium">URL</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://linkedin.com/in/..." {...field} disabled={isOverallSubmitting} />
                     </FormControl>
@@ -337,7 +344,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                   </FormItem>
                 )}
               />
-              <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={isOverallSubmitting}>
+              <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} disabled={isOverallSubmitting} className="text-destructive hover:bg-destructive/10">
                 <Trash2 size={16} />
                 <span className="sr-only">Remove social link</span>
               </Button>
@@ -347,7 +354,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             type="button"
             variant="outline"
             size="sm"
-            className="mt-2"
+            className="mt-3"
             onClick={() => append({ platform: "", url: "" })}
             disabled={isOverallSubmitting}
           >
@@ -355,7 +362,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
           </Button>
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-6 border-t mt-6">
             <Button type="button" variant="outline" onClick={onFormClose} disabled={isOverallSubmitting}>
                 Cancel
             </Button>
@@ -363,7 +370,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             {isOverallSubmitting ? (
                 <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isUploadingImage ? "Uploading..." : "Saving..."}
+                {isUploadingImage ? "Uploading..." : (member ? "Updating..." : "Adding...")}
                 </>
             ) : (
                 member ? "Update Member" : "Add Member"

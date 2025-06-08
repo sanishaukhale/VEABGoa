@@ -116,12 +116,12 @@ export default function ManageTeamPage() {
           ) : (
             <div className="space-y-4">
               {teamMembers.map((member) => (
-                <Card key={member.id} className="flex items-center justify-between p-4 shadow-sm">
+                <Card key={member.id} className="flex items-center justify-between p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div>
                     <p className="font-semibold text-lg text-foreground">{member.name}</p>
                     <p className="text-sm text-muted-foreground">{member.role}</p>
                     {member.displayOrder !== null && member.displayOrder !== undefined && (
-                        <p className="text-xs text-accent">Display Order: {member.displayOrder}</p>
+                        <p className="text-xs text-accent mt-1">Display Order: {member.displayOrder}</p>
                     )}
                   </div>
                   <div className="space-x-2">
