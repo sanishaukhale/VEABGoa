@@ -19,8 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, PlusCircle, Trash2, Image as ImageIcon } from "lucide-react";
 import type { TeamMember } from "@/types";
-import { useState, useEffect, type ChangeEvent, useCallback } from "react";
-import NextImage from "next/image"; // Renamed to avoid conflict
+import { useState, useEffect, type ChangeEvent } from "react";
+import NextImage from "next/image"; 
 import { storage } from '@/lib/firebase';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject, type StorageError } from 'firebase/storage';
 
@@ -34,14 +34,14 @@ interface TeamMemberFormProps {
 export default function TeamMemberForm({ member, onSubmitAction, onFormClose, isSubmitting: isFormSubmitting }: TeamMemberFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [currentImageUrlForPreview, setCurrentImageUrlForPreview] = useState<string | null>(null); // Stores URL of member.imageUrl
+  const [currentImageUrlForPreview, setCurrentImageUrlForPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
 
   const form = useForm<TeamMemberFormValues>({
     resolver: zodResolver(teamMemberFormSchema),
-    // Default values will be set by the useEffect below when `member` prop changes
+    // Default values are set in useEffect
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -49,18 +49,16 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
     name: "socials",
   });
 
-  const { reset } = form; // Destructure reset for stable dependency in useEffect
+  const { reset, setValue } = form;
 
   useEffect(() => {
-    // Reset image-specific states whenever the member changes or form is for a new member
     setSelectedFile(null);
     setUploadProgress(null);
     setImageError(null);
-    setImagePreviewUrl(null); // Clear previous preview
-    setCurrentImageUrlForPreview(null); // Clear previous current image URL
+    setImagePreviewUrl(null); 
+    setCurrentImageUrlForPreview(null);
 
     if (member) {
-      // Editing an existing member
       reset({
         name: member.name || "",
         role: member.role || "",
@@ -72,30 +70,26 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
         displayOrder: member.displayOrder ?? undefined,
       });
 
-      // Set up image preview for the current member
       if (member.imageUrl) {
         if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
-          // Path in Firebase Storage
-          const imageSPath = member.imageUrl;
-          if (storage && imageSPath) {
-            getDownloadURL(storageRef(storage, imageSPath))
+          if (storage && member.imageUrl) {
+            getDownloadURL(storageRef(storage, member.imageUrl))
               .then((url) => {
                 setCurrentImageUrlForPreview(url);
-                if (!selectedFile) { // Only set if no new file is staged
+                if (!selectedFile) { 
                     setImagePreviewUrl(url);
                 }
               })
               .catch((error: StorageError) => {
                 console.error("Error fetching current image for preview:", error);
                 if (error.code === 'storage/object-not-found') {
-                  setImageError(`Current image not found at path: ${imageSPath}.`);
+                  setImageError(`Current image not found at path: ${member.imageUrl}.`);
                 } else {
                   setImageError("Could not load current image preview.");
                 }
               });
           }
         } else {
-          // Already a full URL (e.g., placeholder)
           setCurrentImageUrlForPreview(member.imageUrl);
            if (!selectedFile) {
                setImagePreviewUrl(member.imageUrl);
@@ -103,7 +97,6 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
         }
       }
     } else {
-      // Adding a new member, reset form to blank state
       reset({
         name: "",
         role: "",
@@ -115,27 +108,27 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
         displayOrder: undefined,
       });
     }
-  }, [member, reset, selectedFile]); // Added selectedFile to re-evaluate preview if it changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member, reset]); // Removed selectedFile from deps to avoid re-triggering reset on file selection
+
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setImagePreviewUrl(URL.createObjectURL(file)); // Show local preview of new file
+      setImagePreviewUrl(URL.createObjectURL(file)); 
       setImageError(null);
-      form.setValue('imageUrl', ''); // Clear manual path if file chosen, will be set on upload
+      setValue('imageUrl', ''); 
     } else {
       setSelectedFile(null);
-      // Revert to current member's image preview if available and no new file is selected
       setImagePreviewUrl(currentImageUrlForPreview);
     }
   };
 
   const handleFormSubmitInternal = async (data: TeamMemberFormValues) => {
     setImageError(null);
-    let finalImageUrl = data.imageUrl; // This is the path from the form field (manual input or from previous value)
+    let finalImageUrl = data.imageUrl; 
 
-    // If a new file was selected, it takes precedence
     if (selectedFile && storage) {
       setIsUploadingImage(true);
       setUploadProgress(0);
@@ -161,15 +154,13 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             },
             async () => {
               const newUploadedPath = uploadTask.snapshot.ref.fullPath;
-              finalImageUrl = newUploadedPath; // Set finalImageUrl to the newly uploaded path
+              finalImageUrl = newUploadedPath; 
               
-              // Attempt to delete old image if editing and new one uploaded successfully
               if (member?.imageUrl && member.imageUrl !== newUploadedPath && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
                 try {
                   await deleteObject(storageRef(storage, member.imageUrl));
                   console.log("Old image deleted:", member.imageUrl);
                 } catch (deleteError) {
-                  // Log warning, but don't block submission for this
                   console.warn("Failed to delete old image:", member.imageUrl, deleteError);
                 }
               }
@@ -180,15 +171,10 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
           );
         });
       } catch (uploadError) {
-        // Upload failed, do not proceed with form submission if image is critical
-        // Or, decide to submit without image based on app logic. For now, error is shown.
-        setIsUploadingImage(false); // Ensure loading state is cleared
-        return; // Stop form submission if upload fails
+        setIsUploadingImage(false); 
+        return; 
       }
-    } else if (!selectedFile && member?.imageUrl && data.imageUrl !== member.imageUrl) {
-        // User cleared the manual imageUrl path field without selecting a new file,
-        // and there was an existing image. This implies removing the image.
-        // We should delete the old image from storage if it's a storage path.
+    } else if (!selectedFile && member?.imageUrl && data.imageUrl !== member.imageUrl && data.imageUrl === "") {
         if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://') && storage) {
              try {
                 await deleteObject(storageRef(storage, member.imageUrl));
@@ -197,11 +183,9 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                 console.warn("Failed to delete image when path was cleared:", member.imageUrl, deleteError);
              }
         }
-        finalImageUrl = ""; // Set to empty string to reflect removal
+        finalImageUrl = ""; 
     }
 
-
-    // Ensure the `imageUrl` in the submitted data is the final one (either from upload or manual input)
     const dataToSubmit = { ...data, imageUrl: finalImageUrl || "" };
     await onSubmitAction(dataToSubmit);
   };
@@ -245,7 +229,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-20 h-20 flex-shrink-0">
                 {imagePreviewUrl ? (
-                  <NextImage // Use NextImage
+                  <NextImage 
                     src={imagePreviewUrl}
                     alt="Image Preview"
                     width={80}
@@ -288,7 +272,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                 <Input 
                   placeholder="e.g., team-images/member.png (auto-filled on upload)" 
                   {...field} 
-                  disabled={isOverallSubmitting || isUploadingImage || !!selectedFile} // Disable if new file selected
+                  disabled={isOverallSubmitting || isUploadingImage || !!selectedFile} 
                   aria-readonly={!!selectedFile || isUploadingImage}
                 />
               </FormControl>
@@ -350,13 +334,23 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Display Order (Optional)</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="e.g., 1, 2, 3 (lower # appear first)" {...field} 
-                       value={field.value === undefined || field.value === null ? '' : String(field.value)}
-                       onChange={e => {
-                           const num = parseInt(e.target.value, 10);
+                <Input 
+                  type="number" 
+                  placeholder="e.g., 1, 2, 3 (lower # appear first)"
+                  name={field.name}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  value={field.value === undefined || field.value === null ? '' : String(field.value)}
+                  onChange={e => {
+                       const currentVal = e.target.value;
+                       if (currentVal === "") {
+                           field.onChange(undefined); 
+                       } else {
+                           const num = parseInt(currentVal, 10);
                            field.onChange(isNaN(num) ? undefined : num);
-                       }} 
-                       disabled={isOverallSubmitting} />
+                       }
+                  }} 
+                  disabled={isOverallSubmitting} />
               </FormControl>
               <FormDescription>Controls the order on the About Us page. Leave blank if not needed.</FormDescription>
               <FormMessage />
