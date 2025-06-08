@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2, PlusCircle, Trash2, Image as ImageIcon } from "lucide-react";
 import type { TeamMember } from "@/types";
 import { useState, useEffect, type ChangeEvent } from "react";
-import NextImage from "next/image"; 
+import NextImage from "next/image";
 import { storage } from '@/lib/firebase';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject, type StorageError } from 'firebase/storage';
 
@@ -34,14 +34,23 @@ interface TeamMemberFormProps {
 export default function TeamMemberForm({ member, onSubmitAction, onFormClose, isSubmitting: isFormSubmitting }: TeamMemberFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [currentImageUrlForPreview, setCurrentImageUrlForPreview] = useState<string | null>(null);
+  const [currentImageUrlForPreview, setCurrentImageUrlForPreview] = useState<string | null>(null); // Stores the actual URL of the existing image
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
 
   const form = useForm<TeamMemberFormValues>({
     resolver: zodResolver(teamMemberFormSchema),
-    // Default values are set in useEffect
+    defaultValues: {
+      name: "",
+      role: "",
+      imageUrl: "",
+      dataAiHint: "",
+      intro: "",
+      profession: "",
+      socials: [],
+      displayOrder: undefined,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -55,84 +64,73 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
     setSelectedFile(null);
     setUploadProgress(null);
     setImageError(null);
-    setImagePreviewUrl(null); 
-    setCurrentImageUrlForPreview(null);
 
-    if (member) {
-      reset({
-        name: member.name || "",
-        role: member.role || "",
-        imageUrl: member.imageUrl || "",
-        dataAiHint: member.dataAiHint || "",
-        intro: member.intro || "",
-        profession: member.profession || "",
-        socials: member.socials || [],
-        displayOrder: member.displayOrder ?? undefined,
-      });
+    const newValues = {
+        name: member?.name || "",
+        role: member?.role || "",
+        imageUrl: member?.imageUrl || "",
+        dataAiHint: member?.dataAiHint || "",
+        intro: member?.intro || "",
+        profession: member?.profession || "",
+        socials: member?.socials || [],
+        displayOrder: member?.displayOrder ?? undefined,
+    };
+    reset(newValues); // Reset the form with new/default values
 
-      if (member.imageUrl) {
-        if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
-          if (storage && member.imageUrl) {
-            getDownloadURL(storageRef(storage, member.imageUrl))
-              .then((url) => {
-                setCurrentImageUrlForPreview(url);
-                if (!selectedFile) { 
-                    setImagePreviewUrl(url);
-                }
-              })
-              .catch((error: StorageError) => {
-                console.error("Error fetching current image for preview:", error);
-                if (error.code === 'storage/object-not-found') {
-                  setImageError(`Current image not found at path: ${member.imageUrl}.`);
-                } else {
-                  setImageError("Could not load current image preview.");
-                }
-              });
-          }
-        } else {
-          setCurrentImageUrlForPreview(member.imageUrl);
-           if (!selectedFile) {
-               setImagePreviewUrl(member.imageUrl);
-           }
+    setCurrentImageUrlForPreview(null); // Clear old actual preview URL first
+    setImagePreviewUrl(null); // Clear general preview URL
+
+    if (member?.imageUrl) {
+      if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://') && !member.imageUrl.startsWith('/')) {
+        // It's a Firebase Storage path
+        if (storage) {
+          getDownloadURL(storageRef(storage, member.imageUrl))
+            .then((url) => {
+              setCurrentImageUrlForPreview(url); // Store the fetched URL
+              if (!selectedFile) { // Only update main preview if no new file is selected
+                  setImagePreviewUrl(url);
+              }
+            })
+            .catch((error: StorageError) => {
+              console.error("Error fetching current image for preview:", error);
+              setImageError(error.code === 'storage/object-not-found'
+                ? `Current image not found at path: ${member.imageUrl}. You may need to re-upload.`
+                : "Could not load current image preview.");
+            });
+        }
+      } else { // It's a full URL (e.g. placeholder or external)
+        setCurrentImageUrlForPreview(member.imageUrl);
+        if (!selectedFile) {
+            setImagePreviewUrl(member.imageUrl);
         }
       }
-    } else {
-      reset({
-        name: "",
-        role: "",
-        imageUrl: "",
-        dataAiHint: "",
-        intro: "",
-        profession: "",
-        socials: [],
-        displayOrder: undefined,
-      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [member, reset]); // Removed selectedFile from deps to avoid re-triggering reset on file selection
+  }, [member]); // `reset` is stable, so only `member` is the key dependency
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setImagePreviewUrl(URL.createObjectURL(file)); 
+      setImagePreviewUrl(URL.createObjectURL(file)); // Show preview of selected file
       setImageError(null);
-      setValue('imageUrl', ''); 
-    } else {
+      setValue('imageUrl', ''); // Clear the imageUrl path field as a new file is staged
+    } else { // File input was cleared by the user
       setSelectedFile(null);
-      setImagePreviewUrl(currentImageUrlForPreview);
+      setImagePreviewUrl(currentImageUrlForPreview); // Revert to original image preview (if any)
+      setValue('imageUrl', member?.imageUrl || ''); // Revert form value to original image path
     }
   };
 
   const handleFormSubmitInternal = async (data: TeamMemberFormValues) => {
     setImageError(null);
-    let finalImageUrl = data.imageUrl; 
+    let finalImageUrl = data.imageUrl; // Start with current form value for imageUrl
 
-    if (selectedFile && storage) {
+    if (selectedFile && storage) { // A new file has been selected for upload
       setIsUploadingImage(true);
       setUploadProgress(0);
-      
+
       const uniqueFileName = `${member?.id || 'new'}_${Date.now()}_${selectedFile.name.replace(/\s+/g, '_')}`;
       const imagePath = `team-images/${uniqueFileName}`;
       const fileRef = storageRef(storage, imagePath);
@@ -150,32 +148,36 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
               setImageError(`Upload failed: ${error.message}`);
               setIsUploadingImage(false);
               setUploadProgress(null);
-              rejectUpload(error);
+              rejectUpload(error); // Reject promise to stop form submission
             },
-            async () => {
+            async () => { // Upload completed successfully
               const newUploadedPath = uploadTask.snapshot.ref.fullPath;
-              finalImageUrl = newUploadedPath; 
-              
-              if (member?.imageUrl && member.imageUrl !== newUploadedPath && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')) {
+              finalImageUrl = newUploadedPath; // This will be the new imageUrl
+
+              // Attempt to delete old image if it exists and is different from new one
+              if (member?.imageUrl && member.imageUrl !== newUploadedPath && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://')  && !member.imageUrl.startsWith('/')) {
                 try {
                   await deleteObject(storageRef(storage, member.imageUrl));
                   console.log("Old image deleted:", member.imageUrl);
                 } catch (deleteError) {
-                  console.warn("Failed to delete old image:", member.imageUrl, deleteError);
+                  console.warn("Failed to delete old image (it might not exist or protected):", member.imageUrl, deleteError);
                 }
               }
               setIsUploadingImage(false);
               setUploadProgress(null);
-              resolveUpload();
+              resolveUpload(); // Resolve promise to continue form submission
             }
           );
         });
       } catch (uploadError) {
-        setIsUploadingImage(false); 
-        return; 
+        // Error already handled and state updated by uploadTask.on error callback
+        setIsUploadingImage(false); // Ensure state is consistent
+        return; // Stop form submission if upload failed
       }
-    } else if (!selectedFile && member?.imageUrl && data.imageUrl !== member.imageUrl && data.imageUrl === "") {
-        if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://') && storage) {
+    } else if (!selectedFile && member?.imageUrl && data.imageUrl === "") {
+        // No new file selected, but existing imageUrl path was manually cleared from the form
+        // This indicates user wants to remove the current image without uploading a new one.
+        if (!member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('http://') && !member.imageUrl.startsWith('/') && storage) {
              try {
                 await deleteObject(storageRef(storage, member.imageUrl));
                 console.log("Image removed by clearing path:", member.imageUrl);
@@ -183,13 +185,14 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                 console.warn("Failed to delete image when path was cleared:", member.imageUrl, deleteError);
              }
         }
-        finalImageUrl = ""; 
+        finalImageUrl = ""; // Set imageUrl to empty if it was cleared
     }
+    // If no new file was selected, and imageUrl field was not cleared, finalImageUrl remains data.imageUrl (original path)
 
-    const dataToSubmit = { ...data, imageUrl: finalImageUrl || "" };
+    const dataToSubmit = { ...data, imageUrl: finalImageUrl || "" }; // Ensure imageUrl is always a string
     await onSubmitAction(dataToSubmit);
   };
-  
+
   const isOverallSubmitting = isFormSubmitting || isUploadingImage;
 
   return (
@@ -202,7 +205,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Team member's full name" {...field} disabled={isOverallSubmitting} />
+                <Input placeholder="Team member's full name" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -216,7 +219,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Role/Position</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., President, Volunteer Coordinator" {...field} disabled={isOverallSubmitting} />
+                <Input placeholder="e.g., President, Volunteer Coordinator" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -229,13 +232,13 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-20 h-20 flex-shrink-0">
                 {imagePreviewUrl ? (
-                  <NextImage 
+                  <NextImage
                     src={imagePreviewUrl}
                     alt="Image Preview"
                     width={80}
                     height={80}
                     className="rounded-md object-cover border w-full h-full"
-                    unoptimized={imagePreviewUrl.startsWith('blob:') || imagePreviewUrl.includes('placehold.co')} 
+                    unoptimized={imagePreviewUrl.startsWith('blob:') || imagePreviewUrl.includes('placehold.co')}
                   />
                 ) : (
                   <div className="w-full h-full bg-muted rounded-md flex items-center justify-center border">
@@ -269,10 +272,11 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Image Path in Storage</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="e.g., team-images/member.png (auto-filled on upload)" 
-                  {...field} 
-                  disabled={isOverallSubmitting || isUploadingImage || !!selectedFile} 
+                <Input
+                  placeholder="e.g., team-images/member.png (auto-filled on upload)"
+                  {...field}
+                  value={field.value || ''} 
+                  disabled={isOverallSubmitting || isUploadingImage || !!selectedFile}
                   aria-readonly={!!selectedFile || isUploadingImage}
                 />
               </FormControl>
@@ -283,7 +287,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="dataAiHint"
@@ -291,7 +295,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Image AI Hint (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 'person smiling'" {...field} disabled={isOverallSubmitting} />
+                <Input placeholder="e.g., 'person smiling'" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
               </FormControl>
               <FormDescription>Keywords for placeholder image services. Max two words.</FormDescription>
               <FormMessage />
@@ -306,7 +310,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Introduction/Bio</FormLabel>
               <FormControl>
-                <Textarea placeholder="Short introduction or biography for the team member." {...field} rows={3} disabled={isOverallSubmitting} />
+                <Textarea placeholder="Short introduction or biography for the team member." {...field} value={field.value || ''} rows={3} disabled={isOverallSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -320,7 +324,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Profession</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Environmental Scientist, Community Lead" {...field} disabled={isOverallSubmitting} />
+                <Input placeholder="e.g., Environmental Scientist, Community Lead" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -334,23 +338,23 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
             <FormItem>
               <FormLabel>Display Order (Optional)</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="e.g., 1, 2, 3 (lower # appear first)"
-                  name={field.name}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  value={field.value === undefined || field.value === null ? '' : String(field.value)}
-                  onChange={e => {
-                       const currentVal = e.target.value;
-                       if (currentVal === "") {
-                           field.onChange(undefined); 
-                       } else {
-                           const num = parseInt(currentVal, 10);
-                           field.onChange(isNaN(num) ? undefined : num);
-                       }
-                  }} 
-                  disabled={isOverallSubmitting} />
+                  <Input
+                    type="number"
+                    placeholder="e.g., 1, 2, 3 (lower # appear first)"
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value === undefined || field.value === null ? '' : String(field.value)}
+                    onChange={e => {
+                         const currentVal = e.target.value;
+                         if (currentVal === "") {
+                             field.onChange(undefined);
+                         } else {
+                             const num = parseInt(currentVal, 10);
+                             field.onChange(isNaN(num) ? undefined : num);
+                         }
+                    }}
+                    disabled={isOverallSubmitting} />
               </FormControl>
               <FormDescription>Controls the order on the About Us page. Leave blank if not needed.</FormDescription>
               <FormMessage />
@@ -370,7 +374,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                   <FormItem className="flex-1">
                     <FormLabel className="text-xs font-medium sr-only">Platform for link {index + 1}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Platform (e.g., LinkedIn)" {...field} disabled={isOverallSubmitting} />
+                      <Input placeholder="Platform (e.g., LinkedIn)" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -383,7 +387,7 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
                   <FormItem className="flex-1">
                     <FormLabel className="text-xs font-medium sr-only">URL for link {index + 1}</FormLabel>
                     <FormControl>
-                      <Input type="url" placeholder="Link URL (https://...)" {...field} disabled={isOverallSubmitting} />
+                      <Input type="url" placeholder="Link URL (https://...)" {...field} value={field.value || ''} disabled={isOverallSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -426,5 +430,4 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
     </Form>
   );
 }
-
-    
+     
