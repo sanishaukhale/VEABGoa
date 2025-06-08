@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, Home, Info, Sprout, CalendarDays, Newspaper, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { usePathname } from 'next/navigation';
 import { cn } from "@/lib/utils";
 
@@ -59,12 +59,17 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-card p-0">
               <div className="flex flex-col h-full">
-                <div className="p-4 border-b">
-                   <Link href="/" className="flex items-center gap-2 text-primary">
-                    <Image src={`${basePath}/veab-logo.png`} alt="VEAB Logo" width={28} height={28} />
-                    <span className="text-xl font-bold">Goa</span>
-                  </Link>
-                </div>
+                <SheetHeader className="p-4 border-b">
+                  <div className="flex justify-between items-center">
+                    <SheetTitle className="text-xl font-semibold text-primary">Menu</SheetTitle>
+                    <SheetClose asChild>
+                      <Link href="/" className="flex items-center gap-2 text-primary">
+                        <Image src={`${basePath}/veab-logo.png`} alt="VEAB Goa Logo" width={28} height={28} />
+                        <span className="text-lg font-bold">Goa</span>
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </SheetHeader>
                 <nav className="flex-grow p-4 space-y-2">
                   {navLinks.map((link) => (
                     <SheetClose key={link.label} asChild>
