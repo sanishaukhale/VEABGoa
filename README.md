@@ -76,31 +76,53 @@ yarn install
     *   Create at least one admin user manually in the "Users" tab.
 *   **Enable Firebase Storage:** In your Firebase project, enable Firebase Storage and set up security rules (see below).
 *   **Firestore Collections:**
-    *   Create: `articles`, `events`, `projects`, `contactMessages`.
-    *   Create: `teamMembers`. For each document in `teamMembers`, use the following structure:
+    *   Create: `articles`, `events`, `projects`, `contactMessages`, `teamMembers`.
+    *   For documents in the `teamMembers` collection, use the following structure:
         *   `name` (String): e.g., "Chandrakant Shinde"
         *   `role` (String): e.g., "President"
-        *   `imageUrl` (String): Path in Firebase Storage, e.g., "team-images/chandrakant_shinde.png"
-        *   `dataAiHint` (String, optional): e.g., "person smiling"
+        *   `imageUrl` (String): Path in Firebase Storage, e.g., "team-images/chandrakant_shinde.png" (or full URL if not using Storage for an item)
+        *   `dataAiHint` (String, optional): e.g., "person smiling" (for placeholder image services)
         *   `intro` (String): A short introduction or bio.
         *   `profession` (String): e.g., "Environmental Leader"
         *   `socials` (Array of Objects): Each object should have:
-            *   `platform` (String): "LinkedIn", "Twitter", or "Mail"
-            *   `url` (String): Full URL to the social profile or mailto link.
-        *   `displayOrder` (Number, optional): e.g., 1, 2, 3 for custom ordering on the page. If not used, ordering will be by name.
-    *   You can use the `node scripts/populateTeamMembers.js` script to add initial dummy data to the `teamMembers` collection (see script comments for setup).
-*   **Firebase Storage:** Create a folder (e.g., `team-images`) for member portraits if using Firebase Storage for those. Ensure the paths in the `imageUrl` field of your `teamMembers` documents match the actual paths in Storage.
+            *   `platform` (String): "LinkedIn", "Twitter", or "Mail" (used to map to icons)
+            *   `url` (String): Full URL to the social profile or `mailto:` link.
+        *   `displayOrder` (Number, optional): e.g., 1, 2, 3 for custom ordering on the "About Us" page. Lower numbers appear first. If not used, ordering will be by name by default (or as defined in queries).
+    *   You can use the `node scripts/populateTeamMembers.js` script to add initial dummy data to the `teamMembers` collection (see script comments for setup). Ensure the `imageUrl` paths in the script match images you've uploaded to Firebase Storage.
+*   **Firebase Storage:**
+    *   Create a folder (e.g., `team-images`) in your Firebase Storage for team member portraits.
+    *   Ensure the paths in the `imageUrl` field of your `teamMembers` documents (or those specified in the admin panel) match the actual paths in Storage.
 *   **Security Rules:**
     *   **Firestore Rules:**
         ```javascript
         rules_version = '2';
         service cloud.firestore {
           match /databases/{database}/documents {
-            match /articles/{articleId} { allow read: if true; allow write: if request.auth != null; }
-            match /events/{eventId} { allow read: if true; /* allow write: if request.auth != null; */ }
-            match /projects/{projectId} { allow read: if true; allow write: if request.auth != null; }
-            match /contactMessages/{messageId} { allow create: if true; allow read, update, delete: if request.auth != null;}
-            match /teamMembers/{memberId} { allow read: if true; allow write: if request.auth != null; } // Added rule for teamMembers
+            // Articles: Public read, authenticated write
+            match /articles/{articleId} {
+              allow read: if true;
+              allow write: if request.auth != null;
+            }
+            // Events: Public read. Write access currently restricted (no admin UI yet).
+            match /events/{eventId} {
+              allow read: if true;
+              // allow write: if request.auth != null; // Uncomment if admin UI for events is added
+            }
+            // Projects: Public read, authenticated write
+            match /projects/{projectId} {
+              allow read: if true;
+              allow write: if request.auth != null;
+            }
+            // Contact Messages: Anyone can create, only authenticated users can read/manage
+            match /contactMessages/{messageId} {
+              allow create: if true;
+              allow read, update, delete: if request.auth != null;
+            }
+            // Team Members: Public read, authenticated write
+            match /teamMembers/{memberId} {
+              allow read: if true;
+              allow write: if request.auth != null;
+            }
           }
         }
         ```
@@ -110,24 +132,25 @@ yarn install
         service firebase.storage {
           match /b/{bucket}/o {
             // Allow public read access to images in the 'team-images' folder
+            // Allow authenticated users (admins) to upload/modify/delete images in 'team-images'
             match /team-images/{allPaths=**} {
               allow read: if true;
-              allow write: if request.auth != null; // Only allow authenticated users to upload/modify
+              allow write: if request.auth != null;
             }
             // Add other rules as needed for other paths
           }
         }
         ```
-    **Important:** Secure these rules properly for production.
+    **Important:** Secure these rules properly for production. The rules above provide a good starting point.
 *   **Firestore Indexes:**
     *   Firestore automatically creates single-field indexes. However, for more complex queries (e.g., ordering by multiple fields, or combining range filters with ordering), you'll need to create composite indexes.
     *   If you see an error in your browser console or Firebase logs mentioning "The query requires an index...", Firebase usually provides a direct link to create the missing index.
-    *   For the `teamMembers` collection, if you sort by `displayOrder` (ascending) and then by `name` (ascending) (as done in the admin panel), you will need a composite index.
+    *   For the `teamMembers` collection, if you sort by `displayOrder` (ascending) and then by `name` (ascending) (as done in the admin panel and potentially the public page), you will need a composite index.
         *   **Collection ID:** `teamMembers`
         *   **Fields to index:**
             1.  `displayOrder` (Ascending)
             2.  `name` (Ascending)
-    *   You can create this index in your Firebase Console under Firestore Database > Indexes.
+        *   You can create this index in your Firebase Console under Firestore Database > Indexes. The error message from Firebase will usually provide a direct link to create the required index.
 
 ### 5. Running the Development Server
 
@@ -189,7 +212,7 @@ Admin interfaces are available at:
 *   `/admin/login`: To log in to the admin panel.
 *   `/admin/add-article`: To add new news articles (requires login).
 *   `/admin/add-project`: To add new projects (requires login).
-*   `/admin/manage-team`: To manage team member details (requires login).
+*   `/admin/manage-team`: To manage team member details, including image uploads (requires login).
 
 ## Contributing
 
@@ -198,4 +221,3 @@ Contributions are welcome! Please follow standard fork and pull request procedur
 ---
 
 This `README.md` will be updated as the project evolves.
-
