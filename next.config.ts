@@ -3,11 +3,10 @@ import type {NextConfig} from 'next';
 
 // Environment variables will now be loaded by Next.js automatically
 // from .env.local in the project root.
-// The explicit dotenv.config call has been removed.
 
 const nextConfig: NextConfig = {
-  output: 'export', // Enable static HTML export
-  basePath: process.env.NODE_ENV === 'production' ? '/VEABGoa' : '',
+  // output: 'export', // REMOVED for serverful deployment (e.g., Firebase App Hosting)
+  basePath: '', // Set to empty for Firebase App Hosting
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -15,7 +14,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true, // Required for next export with GitHub Pages
+    unoptimized: false, // Set to false to enable Next.js image optimization on App Hosting
     remotePatterns: [
       {
         protocol: 'https',

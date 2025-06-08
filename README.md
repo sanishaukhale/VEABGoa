@@ -12,15 +12,16 @@ This application is built with:
 *   **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
 *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 *   **Generative AI (Optional, for future use):** [Genkit (by Google)](https://firebase.google.com/docs/genkit)
-*   **Backend/Database:** [Firebase](https://firebase.google.com/) (Firestore for data storage, Firebase Authentication for admin users)
+*   **Backend/Database:** [Firebase](https://firebase.google.com/) (Firestore for data storage, Firebase Authentication for admin users, Firebase Storage for images)
 *   **Version Control:** Git
-*   **Deployment (Static Version):** GitHub Pages via GitHub Actions
+*   **Deployment:** [Firebase App Hosting](https://firebase.google.com/docs/app-hosting)
 
 ## Prerequisites
 
 *   [Node.js](https://nodejs.org/) (v20.x or later recommended)
 *   [npm](https://www.npmjs.com/) (v9.x or later) or [yarn](https://yarnpkg.com/) (v1.22.x or later)
 *   A Firebase project.
+*   [Firebase CLI](https://firebase.google.com/docs/cli) installed and configured.
 
 ## Getting Started
 
@@ -33,7 +34,7 @@ cd your-repo-name
 
 ### 2. Set Up Environment Variables
 
-The application requires Firebase credentials to connect to Firestore and Firebase Authentication. It also uses an environment variable for the `basePath` in certain contexts.
+The application requires Firebase credentials to connect to Firestore, Firebase Authentication, and Firebase Storage.
 
 *   **IMPORTANT:** Environment variables are managed in a `.env.local` file located in the **root of your project directory**.
 *   Copy the example environment file:
@@ -41,7 +42,6 @@ The application requires Firebase credentials to connect to Firestore and Fireba
     cp .env.local.example .env.local
     ```
 *   Open `.env.local` (in the project root) and replace the placeholder values with your **actual Firebase project credentials**. You can find these in your Firebase project settings.
-    For local development, you typically **do not** need to set `NEXT_PUBLIC_BASE_PATH` unless you are specifically testing production-like `basePath` behavior. `next.config.ts` handles `basePath` for local development automatically (setting it to `''`). If you *do* set it for local testing, make sure it matches your intended production `basePath` (e.g., `/your-repo-name`).
 
     Your `.env.local` file should look like this (replace placeholders):
     ```ini
@@ -53,11 +53,6 @@ The application requires Firebase credentials to connect to Firestore and Fireba
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_MESSAGING_SENDER_ID_FROM_FIREBASE"
     NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID_FROM_FIREBASE"
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="YOUR_MEASUREMENT_ID_FROM_FIREBASE" # Optional
-
-    # Base Path for assets if needed during local development to simulate production
-    # Typically, leave this commented out or empty for standard local development.
-    # It's primarily used by the GitHub Actions workflow for production builds.
-    # NEXT_PUBLIC_BASE_PATH=""
     ```
 
     **Note:** `.env.local` is gitignored and should never be committed to the repository.
@@ -77,55 +72,50 @@ yarn install
 *   **Enable Firebase Authentication:**
     *   Go to the "Authentication" section in your Firebase console.
     *   Click on the "Sign-in method" tab.
-    *   Enable the "Email/Password" provider (or any other provider you intend to use for admin access).
-    *   Create at least one admin user manually in the "Users" tab of the Authentication section. You will use these credentials to log into the admin panel.
-*   **Firestore Collections:** Create the following collections:
-    *   `articles`: For news and blog posts. (See `src/types/index.ts` for `Article` structure)
-    *   `events`: For upcoming events. (See `src/types/index.ts` for `Event` structure)
-    *   `projects`: For conservation projects. (See `src/types/index.ts` for `Project` structure)
-    *   `contactMessages`: For storing messages from the contact form.
-*   **Firestore Security Rules:** Configure Firestore security rules. A starting point allowing public reads for content, creates for contact messages, and writes to articles/projects only for authenticated users:
-    ```javascript
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        match /articles/{articleId} {
-          allow read: if true;
-          allow write: if request.auth != null; // Only authenticated users can write
+    *   Enable the "Email/Password" provider.
+    *   Create at least one admin user manually in the "Users" tab.
+*   **Enable Firebase Storage:** In your Firebase project, enable Firebase Storage and set up security rules (see below).
+*   **Firestore Collections:** Create: `articles`, `events`, `projects`, `contactMessages`.
+*   **Firebase Storage:** Create a folder (e.g., `team-images`) for member portraits if using Firebase Storage for those.
+*   **Security Rules:**
+    *   **Firestore Rules:**
+        ```javascript
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /articles/{articleId} { allow read: if true; allow write: if request.auth != null; }
+            match /events/{eventId} { allow read: if true; /* allow write: if request.auth != null; */ }
+            match /projects/{projectId} { allow read: if true; allow write: if request.auth != null; }
+            match /contactMessages/{messageId} { allow create: if true; allow read, update, delete: if request.auth != null;}
+          }
         }
-        match /events/{eventId} {
-          allow read: if true;
-          // allow write: if request.auth != null; // Uncomment if events are admin-managed
+        ```
+    *   **Firebase Storage Rules (Example):**
+        ```
+        rules_version = '2';
+        service firebase.storage {
+          match /b/{bucket}/o {
+            // Allow public read access to images in the 'team-images' folder
+            match /team-images/{allPaths=**} {
+              allow read: if true;
+              allow write: if request.auth != null; // Only allow authenticated users to upload/modify
+            }
+            // Add other rules as needed for other paths
+          }
         }
-        match /projects/{projectId} {
-          allow read: if true;
-          allow write: if request.auth != null; // Only authenticated users can write
-        }
-        match /contactMessages/{messageId} {
-          allow create: if true;
-          allow read, update, delete: if request.auth != null; // Admins can read messages
-        }
-        // Add rules for other collections as needed
-      }
-    }
-    ```
-    **Important:** Secure these rules properly for production. For example, you might want to restrict write access to specific admin UIDs rather than any authenticated user.
+        ```
+    **Important:** Secure these rules properly for production.
 
 ### 5. Running the Development Server
-
-To run the Next.js development server (usually on `http://localhost:9002`):
 
 ```bash
 npm run dev
 # or
 yarn dev
 ```
-
-The application will reload automatically when you make changes to most code files. However, **if you change `.env.local`, you must restart the server.**
+The app usually runs on `http://localhost:9002`. Restart if you change `.env.local`.
 
 ### 6. Running the Genkit Development Server (If using Genkit features)
-
-If you are implementing Genkit flows for AI features:
 
 ```bash
 npm run genkit:dev
@@ -134,35 +124,41 @@ npm run genkit:watch
 ```
 This typically runs on `http://localhost:3100`.
 
-## Building for Production
+## Building for Production (Not for direct deployment to App Hosting)
 
-To create an optimized production build:
-
+While `npm run build` is part of the App Hosting process, you don't manually deploy the `out` or `.next` folder. App Hosting handles this.
 ```bash
 npm run build
 # or
 yarn build
 ```
-This command generates static HTML/CSS/JS files in the `out` directory, suitable for static hosting.
 
-## Deployment
+## Deployment to Firebase App Hosting
 
-### GitHub Pages (Static Deployment)
+Firebase App Hosting builds your Next.js application using buildpacks and deploys it to a managed Cloud Run service.
 
-This project is configured for deployment to GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
+1.  **Ensure Firebase CLI is updated and you're logged in:**
+    ```bash
+    npm install -g firebase-tools
+    firebase login
+    firebase use YOUR_PROJECT_ID
+    ```
+2.  **Deploy:**
+    ```bash
+    firebase deploy --only apphosting
+    ```
+    Or, if you have multiple App Hosting backends, specify the backend ID:
+    ```bash
+    firebase deploy --only apphosting:YOUR_BACKEND_ID
+    ```
+3.  **CI/CD (Optional but Recommended):**
+    *   You can connect your GitHub repository directly to Firebase App Hosting in the Firebase console for automatic deployments on push to a branch.
+    *   Alternatively, you can set up a custom GitHub Actions workflow to run `firebase deploy --only apphosting` using a service account.
 
-*   **Repository Name:** Ensure `basePath` in `next.config.ts`, and `NEXT_PUBLIC_BASE_PATH` in `.github/workflows/deploy.yml` are correctly set to your GitHub repository name (e.g., `/your-repo-name`). If your repository is named `VEABGoa`, these should be `/VEABGoa`.
-*   **GitHub Secrets:** Configure the Firebase environment variables (matching those in `.env.local.example`, **excluding** `NEXT_PUBLIC_BASE_PATH` which is set directly in the workflow) as GitHub Secrets in your repository settings (Settings > Secrets and variables > Actions). The workflow uses these secrets during the build process. The `NEXT_PUBLIC_BASE_PATH` is set directly in the workflow file.
-*   **Limitations:**
-    *   Firebase Authentication will work client-side (users can log in).
-    *   The contact form, admin article submission, and admin project submission will attempt client-side writes to Firestore. These rely on Firestore security rules and client-side Firebase initialization. If Firebase is not correctly configured with valid credentials accessible to the client build, these operations may fail silently or show simulated success.
-    *   News, events, and projects will be static content generated at build time (unless fetched client-side, which is the current setup for the "Coming Soon" pages).
-
-### Other Hosting (e.g., Vercel, Netlify, Firebase Hosting)
-
-For full functionality, including robust backend database interactions if client-side writes are not desired, deploy to a platform that supports Next.js Node.js runtime.
-*   You'll need to configure environment variables on your chosen hosting platform.
-*   `next.config.ts` may need adjustments (e.g., removing `output: 'export'`, `basePath` if not needed for the hosting provider).
+**Environment Variables for Firebase App Hosting:**
+*   App Hosting allows you to set environment variables directly in the Firebase Console (App Hosting > Your Backend > Settings/Configuration) or via the `apphosting.yaml` file for some configurations.
+*   Secrets (like API keys) should be managed through Secret Manager and referenced in App Hosting.
+*   `NEXT_PUBLIC_` prefixed variables from your `.env.local` will need to be set in the App Hosting environment for the build process and client-side use.
 
 ## Admin Interface
 
@@ -170,19 +166,11 @@ Admin interfaces are available at:
 *   `/admin/login`: To log in to the admin panel.
 *   `/admin/add-article`: To add new news articles (requires login).
 *   `/admin/add-project`: To add new projects (requires login).
-*   **Functionality on GitHub Pages:** Admin users can log in. The "Publish" buttons on admin forms will be enabled after login and will attempt client-side database writes.
+*   Other admin management pages for editing are currently placeholders.
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/your-feature-name`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'Add some feature'`).
-5.  Push to the branch (`git push origin feature/your-feature-name`).
-6.  Open a Pull Request.
-
-Please ensure your code adheres to the project's coding standards and includes tests where applicable.
+Contributions are welcome! Please follow standard fork and pull request procedures.
 
 ---
 

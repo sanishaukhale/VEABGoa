@@ -1,14 +1,14 @@
 
 # Workflow for building and deploying a Next.js site to GitHub Pages
-name: Deploy Next.js site to Pages
+name: Deploy Next.js site to Pages (DISABLED - Switched to Firebase App Hosting)
 
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"] # Or your default branch, e.g., main
+# on:
+#   # Runs on pushes targeting the default branch
+#   push:
+#     branches: ["main"] # Or your default branch, e.g., main
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+#   # Allows you to run this workflow manually from the Actions tab
+#   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -69,14 +69,9 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
-        # IMPORTANT: Replace 'your-repo-name' in next.config.ts before running build
-        # If you have not replaced 'your-repo-name' in next.config.ts, this step will fail or produce incorrect paths.
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
         env:
-          # This environment variable is used by the Link component and other Next.js internals.
-          # It's important for correct asset linking when using basePath.
-          # Ensure 'your-repo-name' matches what's in next.config.js's basePath
-          NEXT_PUBLIC_BASE_PATH: /VEABGoa # Replace VEABGoa with your actual repo name if different
+          # NEXT_PUBLIC_BASE_PATH is not needed for Firebase App Hosting build
           # Firebase Environment Variables from GitHub Secrets
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -88,7 +83,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./out # This path is for static export, Firebase App Hosting uses .next standalone or similar
 
   # Deployment job
   deploy:
