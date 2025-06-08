@@ -13,7 +13,7 @@ const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccountKey.json');
 
 // !! IMPORTANT: Replace with your Firebase Project ID !!
-const firebaseProjectId = 'YOUR_FIRESTORE_PROJECT_ID';
+const firebaseProjectId = 'veab-goa';
 
 if (firebaseProjectId === 'YOUR_FIRESTORE_PROJECT_ID') {
     console.error("ERROR: Please replace 'YOUR_FIRESTORE_PROJECT_ID' in scripts/populateTeamMembers.js with your actual Firebase Project ID.");
