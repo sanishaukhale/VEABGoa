@@ -18,7 +18,7 @@ interface SocialLink {
 interface TeamMember {
   name: string;
   role: string;
-  imageUrl: string; // Will now be Firebase Storage path or full placeholder URL
+  imageUrl: string; 
   dataAiHint?: string;
   intro: string;
   profession: string;
@@ -32,14 +32,11 @@ export default function AboutPage() {
   const [resolvedImageUrls, setResolvedImageUrls] = useState<Record<string, string>>({});
   const [isLoadingImages, setIsLoadingImages] = useState(true);
 
-  // IMPORTANT: Update imageUrl paths to reflect paths in your Firebase Storage
-  // e.g., if you upload chandrakant_shinde.png to a folder 'team-images' in your bucket,
-  // the path should be 'team-images/chandrakant_shinde.png'
   const teamMembers: TeamMember[] = [
     {
       name: "Chandrakant Shinde",
       role: "President",
-      imageUrl: "team-images/chandrakant_shinde.png", // Assumed Firebase Storage Path
+      imageUrl: "team-images/chandrakant_shinde.png", 
       intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
       profession: "Environmental Leader",
       socials: [
@@ -50,7 +47,7 @@ export default function AboutPage() {
     {
       name: "Sangam Patil",
       role: "Vice President",
-      imageUrl: "team-images/sangam_patil.jpg", // Assumed Firebase Storage Path
+      imageUrl: "team-images/sangam_patil.jpg", 
       dataAiHint: "person smiling",
       intro: "Supporting strategic initiatives and fostering partnerships for sustainable development in the region.",
       profession: "Conservation Strategist",
@@ -59,7 +56,7 @@ export default function AboutPage() {
     {
       name: "Deepak Gawas",
       role: "Secretary",
-      imageUrl: "team-images/deepak_gawas.png", // Assumed Firebase Storage Path
+      imageUrl: "team-images/deepak_gawas.png", 
       dataAiHint: "professional headshot",
       intro: "Overseeing administrative operations and ensuring smooth execution of VEAB's projects and programs.",
       profession: "Operations Manager",
@@ -68,7 +65,7 @@ export default function AboutPage() {
     {
       name: "Ramesh Zarmekar",
       role: "Treasurer",
-      imageUrl: "team-images/ramesh_zarmekar.png", // Assumed Firebase Storage Path
+      imageUrl: "team-images/ramesh_zarmekar.png", 
       dataAiHint: "person portrait",
       intro: "Managing financial resources with transparency to support VEAB's mission and long-term sustainability.",
       profession: "Financial Advisor",
@@ -76,7 +73,7 @@ export default function AboutPage() {
     {
       name: "Sanket Naik",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", // Placeholder
+      imageUrl: "https://placehold.co/300x300.png", 
       dataAiHint: "team member",
       intro: "Contributing to ecological research and on-ground conservation activities with expertise.",
       profession: "Field Biologist",
@@ -84,7 +81,7 @@ export default function AboutPage() {
     {
       name: "Subodh Naik",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", // Placeholder
+      imageUrl: "https://placehold.co/300x300.png", 
       dataAiHint: "professional photo",
       intro: "Actively involved in community outreach and environmental awareness campaigns across Goa.",
       profession: "Community Organizer",
@@ -92,7 +89,7 @@ export default function AboutPage() {
     {
       name: "Vitthal Shelke",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", // Placeholder
+      imageUrl: "https://placehold.co/300x300.png", 
       dataAiHint: "person smiling",
       intro: "Focused on wildlife rescue operations and habitat restoration projects within the state.",
       profession: "Wildlife Rehabilitator",
@@ -100,7 +97,7 @@ export default function AboutPage() {
     {
       name: "Suryakant Gaonkar",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", // Placeholder
+      imageUrl: "https://placehold.co/300x300.png", 
       dataAiHint: "professional headshot",
       intro: "Dedicated to promoting sustainable agricultural practices and local biodiversity.",
       profession: "Agroecologist",
@@ -108,7 +105,7 @@ export default function AboutPage() {
     {
       name: "Gajanan Shetye",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png", // Placeholder
+      imageUrl: "https://placehold.co/300x300.png", 
       dataAiHint: "team member",
       intro: "Advocating for policy changes and legal frameworks for better environmental protection.",
       profession: "Environmental Advocate",
@@ -121,7 +118,6 @@ export default function AboutPage() {
       const urls: Record<string, string> = {};
       for (const member of teamMembers) {
         if (member.imageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('/')) {
-          // Assumed to be a Firebase Storage path
           if (storage) {
             try {
               const imageRef = storageRef(storage, member.imageUrl);
@@ -129,14 +125,13 @@ export default function AboutPage() {
               urls[member.name] = downloadUrl;
             } catch (error) {
               console.error(`Failed to get download URL for ${member.name} (${member.imageUrl}):`, error);
-              urls[member.name] = `https://placehold.co/128x128.png?text=Error`; // Fallback
+              urls[member.name] = `https://placehold.co/128x128.png?text=Img+NF`; // Updated placeholder
             }
           } else {
             console.warn("Firebase Storage not available for member:", member.name);
-            urls[member.name] = `https://placehold.co/128x128.png?text=No+Storage`; // Fallback
+            urls[member.name] = `https://placehold.co/128x128.png?text=No+Storage`; 
           }
         } else {
-          // It's already a full URL (e.g., placehold.co) or a local public path (though local public paths are being phased out for members)
           urls[member.name] = member.imageUrl.startsWith('/') 
             ? `${basePath}${member.imageUrl}` 
             : (member.imageUrl || `https://placehold.co/128x128.png?text=No+Image`);
@@ -148,7 +143,7 @@ export default function AboutPage() {
 
     fetchImageUrls();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  }, []); 
 
 
   const valuesList = [
@@ -350,7 +345,7 @@ export default function AboutPage() {
                           height={128}
                           className="rounded-full mx-auto mb-4 border-4 border-primary/40 w-32 h-32 object-cover"
                           data-ai-hint={member.dataAiHint}
-                          unoptimized={resolvedImageUrls[member.name]?.includes('placehold.co')} // unoptimize placeholders
+                          unoptimized={resolvedImageUrls[member.name]?.includes('placehold.co')} 
                         />
                       )}
                       <h3 className="text-lg sm:text-xl font-semibold text-foreground">{member.name}</h3>
@@ -406,3 +401,4 @@ export default function AboutPage() {
     </div>
   );
 }
+
