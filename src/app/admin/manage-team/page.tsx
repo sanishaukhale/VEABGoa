@@ -5,14 +5,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle, Users, Edit3, Trash2 } from 'lucide-react';
 import { firestore } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import type { TeamMember } from '@/types';
 import TeamMemberForm from '@/components/admin/team/TeamMemberForm';
-import type { TeamMemberFormValues } from './actions';
+import type { TeamMemberFormValues } from '@/lib/schemas/teamMemberSchema';
 import { saveTeamMember, deleteTeamMember } from './actions';
 
 export default function ManageTeamPage() {
@@ -128,11 +128,9 @@ export default function ManageTeamPage() {
                     <Button variant="outline" size="sm" onClick={() => handleEditMember(member)} aria-label={`Edit ${member.name}`}>
                       <Edit3 size={16} className="mr-1" /> Edit
                     </Button>
-                    <AlertDialogTrigger asChild>
-                         <Button variant="destructive" size="sm" onClick={() => setMemberToDelete(member)} aria-label={`Delete ${member.name}`}>
-                            <Trash2 size={16} className="mr-1" /> Delete
-                         </Button>
-                    </AlertDialogTrigger>
+                    <Button variant="destructive" size="sm" onClick={() => setMemberToDelete(member)} aria-label={`Delete ${member.name}`}>
+                        <Trash2 size={16} className="mr-1" /> Delete
+                    </Button>
                   </div>
                 </Card>
               ))}
