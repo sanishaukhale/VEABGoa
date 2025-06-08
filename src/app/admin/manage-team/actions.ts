@@ -22,11 +22,15 @@ export async function saveTeamMember(
     return { success: false, error: "Database connection error." };
   }
 
-  const dataToSave = {
-    ...parsedData.data,
-    // Ensure displayOrder is stored as a number or removed if undefined
-    displayOrder: parsedData.data.displayOrder === undefined || isNaN(parsedData.data.displayOrder) ? null : parsedData.data.displayOrder,
-  };
+  const { displayOrder, ...restOfData } = parsedData.data;
+  
+  const dataToSave: any = { ...restOfData };
+
+  if (displayOrder !== undefined && !isNaN(displayOrder)) {
+    dataToSave.displayOrder = Number(displayOrder);
+  } else {
+    dataToSave.displayOrder = null; // Store as null if not provided or NaN
+  }
 
 
   try {
@@ -35,21 +39,28 @@ export async function saveTeamMember(
       const memberRef = doc(firestore, 'teamMembers', memberId);
       await updateDoc(memberRef, {
         ...dataToSave,
-        updatedAt: Timestamp.now(), // Optional: add an updated timestamp
+        updatedAt: Timestamp.now(),
       });
     } else {
       // Add new member
       await addDoc(collection(firestore, 'teamMembers'), {
         ...dataToSave,
-        createdAt: Timestamp.now(), // Optional: add a created timestamp
+        createdAt: Timestamp.now(),
       });
     }
-    revalidatePath('/about'); // Revalidate the public about page
-    revalidatePath('/admin/manage-team'); // Revalidate the admin manage team page
+    revalidatePath('/about');
+    revalidatePath('/admin/manage-team');
     return { success: true, message: `Team member ${memberId ? 'updated' : 'saved'} successfully!` };
-  } catch (error) {
-    console.error(`Error saving team member to Firestore:`, error);
-    return { success: false, error: "Failed to save team member due to a server error." };
+  } catch (error: any) {
+    console.error(`Error saving team member to Firestore:`, error); // Check server logs for this full error!
+    let errorMessage = "Failed to save team member due to a server error.";
+    if (error.message) {
+        errorMessage += ` Firebase: ${error.message}`;
+    }
+    if (error.code) {
+        errorMessage += ` (Code: ${error.code})`;
+    }
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -70,8 +81,16 @@ export async function deleteTeamMember(
     revalidatePath('/about');
     revalidatePath('/admin/manage-team');
     return { success: true, message: "Team member deleted successfully." };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error deleting team member from Firestore:`, error);
-    return { success: false, error: "Failed to delete team member." };
+    let errorMessage = "Failed to delete team member.";
+    if (error.message) {
+        errorMessage += ` Firebase: ${error.message}`;
+    }
+    if (error.code) {
+        errorMessage += ` (Code: ${error.code})`;
+    }
+    return { success: false, error: errorMessage };
   }
 }
+
