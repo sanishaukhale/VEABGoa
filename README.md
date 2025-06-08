@@ -93,7 +93,9 @@ yarn install
     *   Create a folder (e.g., `team-images`) in your Firebase Storage for team member portraits.
     *   Ensure the paths in the `imageUrl` field of your `teamMembers` documents (or those specified in the admin panel) match the actual paths in Storage.
 *   **Security Rules:**
-    *   **Firestore Rules:**
+    *   **Firestore Rules - CRITICAL STEP:**
+        *   Go to your Firebase Console -> Firestore Database -> Rules tab.
+        *   **Ensure the rules deployed there EXACTLY match the following structure.** Incorrect rules are the most common cause of `PERMISSION_DENIED` errors.
         ```javascript
         rules_version = '2';
         service cloud.firestore {
@@ -119,6 +121,10 @@ yarn install
               allow read, update, delete: if request.auth != null;
             }
             // Team Members: Public read, authenticated write
+            // The `request.auth != null` condition means only users signed into your
+            // Firebase app (via the admin panel) can write (create, update, delete)
+            // team member data. If this rule is not correctly deployed, you will get
+            // PERMISSION_DENIED errors when trying to save team members.
             match /teamMembers/{memberId} {
               allow read: if true;
               allow write: if request.auth != null;
@@ -126,6 +132,7 @@ yarn install
           }
         }
         ```
+        *   After pasting the rules, click **"Publish"**. Changes can take a few minutes to apply.
     *   **Firebase Storage Rules (Example):**
         ```
         rules_version = '2';
@@ -144,13 +151,13 @@ yarn install
     **Important:** Secure these rules properly for production. The rules above provide a good starting point.
 *   **Firestore Indexes:**
     *   Firestore automatically creates single-field indexes. However, for more complex queries (e.g., ordering by multiple fields, or combining range filters with ordering), you'll need to create composite indexes.
-    *   If you see an error in your browser console or Firebase logs mentioning "The query requires an index...", Firebase usually provides a direct link to create the missing index.
-    *   For the `teamMembers` collection, if you sort by `displayOrder` (ascending) and then by `name` (ascending) (as done in the admin panel and potentially the public page), you will need a composite index.
+    *   **If you see an error in your browser console or Firebase logs mentioning "The query requires an index..."**, Firebase usually provides a direct link to create the missing index. Click this link and create the index.
+    *   For the `teamMembers` collection, to support sorting by `displayOrder` (ascending) and then by `name` (ascending) (as used in the admin panel and potentially the public "About Us" page), you will need a composite index:
         *   **Collection ID:** `teamMembers`
         *   **Fields to index:**
             1.  `displayOrder` (Ascending)
             2.  `name` (Ascending)
-        *   You can create this index in your Firebase Console under Firestore Database > Indexes. The error message from Firebase will usually provide a direct link to create the required index.
+        *   You can create this index in your Firebase Console under Firestore Database > Indexes. The error message from Firebase when this index is missing will usually provide a direct link.
 
 ### 5. Running the Development Server
 
@@ -221,3 +228,4 @@ Contributions are welcome! Please follow standard fork and pull request procedur
 ---
 
 This `README.md` will be updated as the project evolves.
+
