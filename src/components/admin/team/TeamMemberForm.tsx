@@ -2,9 +2,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-import type { TeamMemberFormValues } from "@/app/admin/manage-team/actions";
-import { teamMemberFormSchema } from "@/app/admin/manage-team/actions";
+import { useForm, useFieldArray } from "react-hook-form";
+import { teamMemberFormSchema, type TeamMemberFormValues } from "@/lib/schemas/teamMemberSchema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -227,4 +226,3 @@ export default function TeamMemberForm({ member, onSubmitAction, onFormClose, is
     </Form>
   );
 }
-
