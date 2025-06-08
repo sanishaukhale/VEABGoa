@@ -1,7 +1,7 @@
 
 "use server";
 
-import { firestore } from '@/lib/firebase';
+import { firestore, auth } from '@/lib/firebase'; // Import auth
 import { collection, addDoc, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { teamMemberFormSchema, type TeamMemberFormValues } from '@/lib/schemas/teamMemberSchema';
@@ -17,6 +17,15 @@ export async function saveTeamMember(
     return { success: false, error: `Invalid data: ${errorMessages}` };
   }
 
+  // Diagnostic log for authentication state
+  if (auth && auth.currentUser) {
+    console.log(`[Server Action] saveTeamMember: Executing as authenticated user: ${auth.currentUser.uid}, email: ${auth.currentUser.email}`);
+  } else {
+    console.warn("[Server Action] saveTeamMember: Executing with NO AUTHENTICATED USER according to Firebase client SDK. This WILL LIKELY CAUSE PERMISSION_DENIED if rules require auth. Ensure client is logged in and auth state is propagated.");
+    // Depending on strictness, you might even return an error here:
+    // return { success: false, error: "User not authenticated in server action context. Cannot save team member." };
+  }
+
   if (!firestore) {
     console.error("Firestore is not initialized.");
     return { success: false, error: "Database connection error." };
@@ -26,10 +35,14 @@ export async function saveTeamMember(
   
   const dataToSave: any = { ...restOfData };
 
-  if (displayOrder !== undefined && !isNaN(displayOrder)) {
+  if (displayOrder !== undefined && displayOrder !== null && !isNaN(displayOrder)) {
     dataToSave.displayOrder = Number(displayOrder);
+  } else if (displayOrder === null || displayOrder === undefined || (typeof displayOrder === 'string' && displayOrder.trim() === '')) {
+    dataToSave.displayOrder = null; // Explicitly set to null if cleared or not provided
   } else {
-    dataToSave.displayOrder = null; // Store as null if not provided or NaN
+    // If it's some other non-numeric string, it might be an issue, but Zod should coerce.
+    // For safety, if it's not a valid number or explicitly null/undefined, treat as null.
+    dataToSave.displayOrder = Number.isNaN(Number(displayOrder)) ? null : Number(displayOrder);
   }
 
 
@@ -52,13 +65,13 @@ export async function saveTeamMember(
     revalidatePath('/admin/manage-team');
     return { success: true, message: `Team member ${memberId ? 'updated' : 'saved'} successfully!` };
   } catch (error: any) {
-    console.error(`Error saving team member to Firestore:`, error); // Check server logs for this full error!
+    console.error(`Error saving team member to Firestore:`, error); 
     let errorMessage = "Failed to save team member due to a server error.";
     if (error.message) {
         errorMessage += ` Firebase: ${error.message}`;
     }
     if (error.code) {
-        errorMessage += ` (Code: ${error.code})`;
+        errorMessage += ` (Code: ${error.code})`; // This will show PERMISSION_DENIED
     }
     return { success: false, error: errorMessage };
   }
@@ -67,6 +80,13 @@ export async function saveTeamMember(
 export async function deleteTeamMember(
   memberId: string
 ): Promise<{ success: boolean; error?: string; message?: string }> {
+  // Diagnostic log for authentication state
+  if (auth && auth.currentUser) {
+    console.log(`[Server Action] deleteTeamMember: Executing as authenticated user: ${auth.currentUser.uid}, email: ${auth.currentUser.email}`);
+  } else {
+    console.warn("[Server Action] deleteTeamMember: Executing with NO AUTHENTICATED USER according to Firebase client SDK. This WILL LIKELY CAUSE PERMISSION_DENIED if rules require auth.");
+  }
+  
   if (!firestore) {
     console.error("Firestore is not initialized.");
     return { success: false, error: "Database connection error." };
@@ -81,7 +101,8 @@ export async function deleteTeamMember(
     revalidatePath('/about');
     revalidatePath('/admin/manage-team');
     return { success: true, message: "Team member deleted successfully." };
-  } catch (error: any) {
+  } catch (error: any)
+{
     console.error(`Error deleting team member from Firestore:`, error);
     let errorMessage = "Failed to delete team member.";
     if (error.message) {

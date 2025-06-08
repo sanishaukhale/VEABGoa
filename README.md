@@ -92,10 +92,12 @@ yarn install
 *   **Firebase Storage:**
     *   Create a folder (e.g., `team-images`) in your Firebase Storage for team member portraits.
     *   Ensure the paths in the `imageUrl` field of your `teamMembers` documents (or those specified in the admin panel) match the actual paths in Storage.
-*   **Security Rules:**
-    *   **Firestore Rules - CRITICAL STEP:**
+*   **Security Rules - CRITICAL STEPS:**
+    *   **Firestore Rules - VERY IMPORTANT:**
         *   Go to your Firebase Console -> Firestore Database -> Rules tab.
-        *   **Ensure the rules deployed there EXACTLY match the following structure.** Incorrect rules are the most common cause of `PERMISSION_DENIED` errors.
+        *   **It is CRUCIAL that the rules deployed in your Firebase console EXACTLY MATCH the FULL structure provided below.**
+        *   Partial or incorrect rules are the most common cause of `PERMISSION_DENIED` errors.
+        *   **Copy the ENTIRE block below and paste it into the Rules editor, replacing any existing content.**
         ```javascript
         rules_version = '2';
         service cloud.firestore {
@@ -105,7 +107,7 @@ yarn install
               allow read: if true;
               allow write: if request.auth != null;
             }
-            // Events: Public read. Write access currently restricted (no admin UI yet).
+            // Events: Public read. Write access currently restricted (no admin UI yet for creating/editing).
             match /events/{eventId} {
               allow read: if true;
               // allow write: if request.auth != null; // Uncomment if admin UI for events is added
@@ -115,24 +117,33 @@ yarn install
               allow read: if true;
               allow write: if request.auth != null;
             }
-            // Contact Messages: Anyone can create, only authenticated users can read/manage
+            // Contact Messages: Anyone can create (form submission), only authenticated users can read/manage.
             match /contactMessages/{messageId} {
               allow create: if true;
               allow read, update, delete: if request.auth != null;
             }
             // Team Members: Public read, authenticated write
             // The `request.auth != null` condition means only users signed into your
-            // Firebase app (via the admin panel) can write (create, update, delete)
-            // team member data. If this rule is not correctly deployed, you will get
-            // PERMISSION_DENIED errors when trying to save team members.
+            // Firebase app (e.g., via the admin panel) can write (create, update, delete)
+            // team member data. If this rule is not correctly deployed, or if the user
+            // is not properly authenticated when the server action runs, you will get
+            // PERMISSION_DENIED errors.
             match /teamMembers/{memberId} {
               allow read: if true;
               allow write: if request.auth != null;
             }
+
+            // Default Deny: It's good practice to deny all other paths if not explicitly allowed.
+            // However, be cautious: if you have other collections, they'll need explicit rules.
+            // For now, ensure all known collections are covered above.
+            // match /{document=**} {
+            //   allow read, write: if false;
+            // }
           }
         }
         ```
         *   After pasting the rules, click **"Publish"**. Changes can take a few minutes to apply.
+        *   **If you get `PERMISSION_DENIED` for `teamMembers` (or any other collection), double-check that the exact block for that collection is present and correctly written within the `match /databases/{database}/documents { ... }` scope in your *deployed* Firebase console rules.**
     *   **Firebase Storage Rules (Example):**
         ```
         rules_version = '2';
