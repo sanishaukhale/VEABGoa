@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp, type FirebaseOptions, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 // Firebase configuration will now be read from environment variables
 const firebaseConfigValues = {
@@ -66,6 +67,7 @@ const firebaseConfig: FirebaseOptions = firebaseConfigValues as FirebaseOptions;
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let firestore: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
 if (!configError) { // Only proceed if basic env var checks pass (not missing, not placeholder)
   if (!getApps().length) {
@@ -101,11 +103,17 @@ if (!configError) { // Only proceed if basic env var checks pass (not missing, n
       console.error("Firebase Firestore initialization (getFirestore) failed:", e.message);
       firestore = null; // Ensure firestore is null if getFirestore fails
     }
+
+    try {
+      storage = getStorage(app);
+    } catch (e: any) {
+      console.error("Firebase Storage initialization (getStorage) failed:", e.message);
+      storage = null; // Ensure storage is null if getStorage fails
+    }
   }
 }
 
 if (configError && errorMessages.length > 0) {
-  // This message is for when env vars are missing/placeholders
   console.error(
     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
     errorMessages.join("\n") + "\n" +
@@ -114,13 +122,11 @@ if (configError && errorMessages.length > 0) {
     "Firebase will not initialize correctly. You MUST RESTART your development server after correcting 'src/.env.local'.\n" +
     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   );
-} else if (app && (!auth || !firestore) && !configError) { // Added !configError here to avoid double logging if initial checks failed
-    // This message is for when env vars might be present (so !configError), but service initialization still failed
+} else if (app && (!auth || !firestore || !storage) && !configError) { 
     console.warn(
-        "Firebase services (Auth/Firestore) may not be fully initialized. This could be due to invalid credentials (even if present in .env.local) or other Firebase setup issues. Some app features might not work as expected."
+        "Firebase services (Auth/Firestore/Storage) may not be fully initialized. This could be due to invalid credentials (even if present in .env.local) or other Firebase setup issues. Some app features might not work as expected."
     );
 }
 
 
-export { app, firestore, auth };
-
+export { app, firestore, auth, storage };

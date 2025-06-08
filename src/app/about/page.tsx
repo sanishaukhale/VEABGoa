@@ -3,8 +3,11 @@
 
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Leaf, Users, Target, BookOpen, CheckCircle, Linkedin, Twitter, Mail as MailIcon, ShieldCheck, ListChecks, Eye, Award, Users2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { storage } from '@/lib/firebase';
+import { ref as storageRef, getDownloadURL } from 'firebase/storage';
 
 interface SocialLink {
   platform: string;
@@ -15,7 +18,7 @@ interface SocialLink {
 interface TeamMember {
   name: string;
   role: string;
-  imageUrl: string;
+  imageUrl: string; // Will now be Firebase Storage path or full placeholder URL
   dataAiHint?: string;
   intro: string;
   profession: string;
@@ -26,12 +29,17 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export default function AboutPage() {
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
+  const [resolvedImageUrls, setResolvedImageUrls] = useState<Record<string, string>>({});
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
 
+  // IMPORTANT: Update imageUrl paths to reflect paths in your Firebase Storage
+  // e.g., if you upload chandrakant_shinde.png to a folder 'team-images' in your bucket,
+  // the path should be 'team-images/chandrakant_shinde.png'
   const teamMembers: TeamMember[] = [
     {
       name: "Chandrakant Shinde",
       role: "President",
-      imageUrl: "/chandrakant_shinde.png",
+      imageUrl: "team-images/chandrakant_shinde.png", // Assumed Firebase Storage Path
       intro: "Leading VEAB with a dedicated vision for Goa's environmental conservation and community engagement.",
       profession: "Environmental Leader",
       socials: [
@@ -42,7 +50,7 @@ export default function AboutPage() {
     {
       name: "Sangam Patil",
       role: "Vice President",
-      imageUrl: "/sangam_patil.jpg",
+      imageUrl: "team-images/sangam_patil.jpg", // Assumed Firebase Storage Path
       dataAiHint: "person smiling",
       intro: "Supporting strategic initiatives and fostering partnerships for sustainable development in the region.",
       profession: "Conservation Strategist",
@@ -51,7 +59,7 @@ export default function AboutPage() {
     {
       name: "Deepak Gawas",
       role: "Secretary",
-      imageUrl: "/deepak_gawas.png",
+      imageUrl: "team-images/deepak_gawas.png", // Assumed Firebase Storage Path
       dataAiHint: "professional headshot",
       intro: "Overseeing administrative operations and ensuring smooth execution of VEAB's projects and programs.",
       profession: "Operations Manager",
@@ -60,7 +68,7 @@ export default function AboutPage() {
     {
       name: "Ramesh Zarmekar",
       role: "Treasurer",
-      imageUrl: "/ramesh_zarmekar.png",
+      imageUrl: "team-images/ramesh_zarmekar.png", // Assumed Firebase Storage Path
       dataAiHint: "person portrait",
       intro: "Managing financial resources with transparency to support VEAB's mission and long-term sustainability.",
       profession: "Financial Advisor",
@@ -68,7 +76,7 @@ export default function AboutPage() {
     {
       name: "Sanket Naik",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "https://placehold.co/300x300.png", // Placeholder
       dataAiHint: "team member",
       intro: "Contributing to ecological research and on-ground conservation activities with expertise.",
       profession: "Field Biologist",
@@ -76,7 +84,7 @@ export default function AboutPage() {
     {
       name: "Subodh Naik",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "https://placehold.co/300x300.png", // Placeholder
       dataAiHint: "professional photo",
       intro: "Actively involved in community outreach and environmental awareness campaigns across Goa.",
       profession: "Community Organizer",
@@ -84,7 +92,7 @@ export default function AboutPage() {
     {
       name: "Vitthal Shelke",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "https://placehold.co/300x300.png", // Placeholder
       dataAiHint: "person smiling",
       intro: "Focused on wildlife rescue operations and habitat restoration projects within the state.",
       profession: "Wildlife Rehabilitator",
@@ -92,7 +100,7 @@ export default function AboutPage() {
     {
       name: "Suryakant Gaonkar",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "https://placehold.co/300x300.png", // Placeholder
       dataAiHint: "professional headshot",
       intro: "Dedicated to promoting sustainable agricultural practices and local biodiversity.",
       profession: "Agroecologist",
@@ -100,12 +108,48 @@ export default function AboutPage() {
     {
       name: "Gajanan Shetye",
       role: "EC Member",
-      imageUrl: "https://placehold.co/300x300.png",
+      imageUrl: "https://placehold.co/300x300.png", // Placeholder
       dataAiHint: "team member",
       intro: "Advocating for policy changes and legal frameworks for better environmental protection.",
       profession: "Environmental Advocate",
     },
   ];
+
+  useEffect(() => {
+    const fetchImageUrls = async () => {
+      setIsLoadingImages(true);
+      const urls: Record<string, string> = {};
+      for (const member of teamMembers) {
+        if (member.imageUrl && !member.imageUrl.startsWith('https://') && !member.imageUrl.startsWith('/')) {
+          // Assumed to be a Firebase Storage path
+          if (storage) {
+            try {
+              const imageRef = storageRef(storage, member.imageUrl);
+              const downloadUrl = await getDownloadURL(imageRef);
+              urls[member.name] = downloadUrl;
+            } catch (error) {
+              console.error(`Failed to get download URL for ${member.name} (${member.imageUrl}):`, error);
+              urls[member.name] = `https://placehold.co/128x128.png?text=Error`; // Fallback
+            }
+          } else {
+            console.warn("Firebase Storage not available for member:", member.name);
+            urls[member.name] = `https://placehold.co/128x128.png?text=No+Storage`; // Fallback
+          }
+        } else {
+          // It's already a full URL (e.g., placehold.co) or a local public path (though local public paths are being phased out for members)
+          urls[member.name] = member.imageUrl.startsWith('/') 
+            ? `${basePath}${member.imageUrl}` 
+            : (member.imageUrl || `https://placehold.co/128x128.png?text=No+Image`);
+        }
+      }
+      setResolvedImageUrls(urls);
+      setIsLoadingImages(false);
+    };
+
+    fetchImageUrls();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
 
   const valuesList = [
     "Protecting & improving the natural environment.",
@@ -122,11 +166,9 @@ export default function AboutPage() {
 
   const handleFlip = (name: string) => {
     setFlippedCards(prevFlippedCards => {
-      // If the clicked card is already flipped, unflip it (close it)
       if (prevFlippedCards[name]) {
-        return {}; // Close all cards
+        return {}; 
       }
-      // Otherwise, flip the clicked card and unflip all others
       const newFlippedState: Record<string, boolean> = {};
       newFlippedState[name] = true;
       return newFlippedState;
@@ -139,7 +181,7 @@ export default function AboutPage() {
       <header className="text-center mb-12">
         <Leaf size={64} className="mx-auto text-primary mb-4" />
         <h1 className="text-4xl md:text-5xl font-bold text-primary">About VEAB Goa</h1>
-        <p className="text-base sm:text-xl text-muted-foreground mt-2 max-w-3xl mx-auto">
+        <p className="text-base sm:text-lg text-muted-foreground mt-2 max-w-3xl mx-auto">
           Vivekanand Environment Awareness Brigade (VEAB) is a non-profit organization based at Keri, Sattari-Goa, dedicated towards environment education and wildlife conservation. Registered on October 04, 2001 under the Societies Registration Act, 1860, VEAB has gained repute as a leading force in the field of environment conservation.
         </p>
       </header>
@@ -298,14 +340,19 @@ export default function AboutPage() {
                 <div className="flip-card-front">
                   <Card className="w-full h-full flex flex-col text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="pt-6 flex flex-col items-center justify-center flex-grow">
-                      <Image
-                        src={member.imageUrl.startsWith('https://') ? member.imageUrl : `${basePath}${member.imageUrl}`}
-                        alt={`Portrait of ${member.name}, ${member.role}`}
-                        width={128}
-                        height={128}
-                        className="rounded-full mx-auto mb-4 border-4 border-primary/40 w-32 h-32 object-cover"
-                        {...(member.dataAiHint && !member.imageUrl.startsWith('https://') && { 'data-ai-hint': member.dataAiHint })}
-                      />
+                      {isLoadingImages || !resolvedImageUrls[member.name] ? (
+                        <Skeleton className="rounded-full mx-auto mb-4 border-4 border-primary/40 w-32 h-32 object-cover" />
+                      ) : (
+                        <Image
+                          src={resolvedImageUrls[member.name] as string}
+                          alt={`Portrait of ${member.name}, ${member.role}`}
+                          width={128}
+                          height={128}
+                          className="rounded-full mx-auto mb-4 border-4 border-primary/40 w-32 h-32 object-cover"
+                          data-ai-hint={member.dataAiHint}
+                          unoptimized={resolvedImageUrls[member.name]?.includes('placehold.co')} // unoptimize placeholders
+                        />
+                      )}
                       <h3 className="text-lg sm:text-xl font-semibold text-foreground">{member.name}</h3>
                       <p className="text-sm sm:text-base text-accent">{member.role}</p>
                     </CardContent>
@@ -359,4 +406,3 @@ export default function AboutPage() {
     </div>
   );
 }
-
